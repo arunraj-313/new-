@@ -1,0 +1,51 @@
+public ActionResult AdminDashboard()
+{
+    if (Session["Role"] == null || Session["Role"].ToString() != "Admin")
+    {
+        return RedirectToAction("Login", "Account");
+    }
+
+    int adminId = Convert.ToInt32(Session["UserID"]);
+    AdminDashboardViewModel model = new AdminDashboardViewModel();
+
+    // ================================================
+    //     🔥  ADD THIS CODE HERE (Recent PG section)
+    // ================================================
+
+    List<PGListingModel> recentPGs = new List<PGListingModel>();
+
+    using (SqlConnection con = new SqlConnection(connString))
+    {
+        string query = @"SELECT TOP 5 PGID, PGName, Location, Type, Rent, CreatedDate 
+                         FROM PGListings 
+                         WHERE AdminID=@AdminID 
+                         ORDER BY CreatedDate DESC";
+
+        SqlCommand cmd = new SqlCommand(query, con);
+        cmd.Parameters.AddWithValue("@AdminID", adminId);
+
+        con.Open();
+        SqlDataReader dr = cmd.ExecuteReader();
+
+        while (dr.Read())
+        {
+            recentPGs.Add(new PGListingModel
+            {
+                PGID = Convert.ToInt32(dr["PGID"]),
+                PGName = dr["PGName"].ToString(),
+                Location = dr["Location"].ToString(),
+                Type = dr["Type"].ToString(),
+                Rent = Convert.ToDecimal(dr["Rent"]),
+                CreatedDate = Convert.ToDateTime(dr["CreatedDate"])
+            });
+        }
+    }
+
+    model.RecentPGs = recentPGs;
+
+    // ================================================
+    //     END of Recent PG section
+    // ================================================
+
+    return View(model);
+}
