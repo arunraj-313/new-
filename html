@@ -1,0 +1,187 @@
+/* Gradient Background */
+.dashboard-bg {
+    background: linear-gradient(135deg, #a044ff 0%, #ff6a88 100%);
+    min-height: 100vh;
+    padding: 40px;
+}
+
+/* White Card Container */
+.dashboard-card {
+    background: #fff;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+/* Top Navigation Tabs */
+.dashboard-tabs a {
+    padding: 12px 22px;
+    font-weight: 600;
+    color: #555;
+    text-decoration: none;
+    border-radius: 30px;
+    margin-right: 10px;
+}
+
+.dashboard-tabs a.active {
+    background: #6c5ce7;
+    color: #fff;
+}
+
+/* Add Button */
+.btn-add {
+    background: #ff4d8a;
+    color: white !important;
+    padding: 10px 18px;
+    border-radius: 25px;
+    font-weight: bold;
+    float: right;
+}
+
+.table thead {
+    background: #f7f7f7;
+    font-weight: bold;
+}
+
+.table tbody tr td {
+    vertical-align: middle;
+}
+
+/* Circular Icon */
+.icon-circle {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 15px;
+}
+
+
+
+
+html
+
+
+
+
+@{
+    ViewBag.Title = "Admin Dashboard - StayEasy";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="dashboard-bg">
+
+    <div class="dashboard-card">
+
+        <!-- Top Tabs -->
+        <div class="dashboard-tabs mb-4">
+            <a href="@Url.Action("AdminDashboard","Admin")" class="active">Dashboard</a>
+            <a href="@Url.Action("ViewPG","PG")">PG Listings</a>
+            <a href="@Url.Action("UsersDetails","Admin")">Users</a>
+            <a href="@Url.Action("Settings","Admin")">Settings</a>
+        </div>
+
+        <!-- Header + Add Button -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold">Recent PG Registrations</h4>
+
+            <a href="@Url.Action("AddPG","PG")" class="btn-add">
+                + Add PG
+            </a>
+        </div>
+
+        <!-- Table -->
+        <table class="table table-borderless align-middle">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>PG Name</th>
+                    <th>Location</th>
+                    <th>Type</th>
+                    <th>Rent</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var pg in Model.RecentPGs)
+                {
+                    <tr>
+                        <td>@pg.CreatedDate.ToString("dd MMM yyyy")</td>
+
+                        <td>
+                            <span class="icon-circle" style="background:#6c5ce7;">🏠</span>
+                            <span class="ms-2">@pg.PGName</span>
+                        </td>
+
+                        <td>@pg.Location</td>
+                        <td>@pg.Type</td>
+                        <td>₹ @pg.Rent</td>
+
+                        <td>
+                            <a href="@Url.Action("EditPG","PG", new { id = pg.PGID })" class="text-primary">Edit</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+
+
+
+
+public List<PGListingModel> RecentPGs { get; set; }
+
+
+
+
+
+
+
+
+
+
+List<PGListingModel> recentPGs = new List<PGListingModel>();
+
+using (SqlConnection con = new SqlConnection(connString))
+{
+    string query = @"SELECT TOP 5 PGID, PGName, Location, Type, Rent, CreatedDate 
+                     FROM PGListings 
+                     WHERE AdminID=@AdminID 
+                     ORDER BY CreatedDate DESC";
+
+    SqlCommand cmd = new SqlCommand(query, con);
+    cmd.Parameters.AddWithValue("@AdminID", adminId);
+    con.Open();
+
+    SqlDataReader dr = cmd.ExecuteReader();
+    while (dr.Read())
+    {
+        recentPGs.Add(new PGListingModel
+        {
+            PGID = Convert.ToInt32(dr["PGID"]),
+            PGName = dr["PGName"].ToString(),
+            Location = dr["Location"].ToString(),
+            Type = dr["Type"].ToString(),
+            Rent = Convert.ToDecimal(dr["Rent"]),
+            CreatedDate = Convert.ToDateTime(dr["CreatedDate"])
+        });
+    }
+}
+
+model.RecentPGs = recentPGs;
+
+
+
+
+
+
+
+
+
+
