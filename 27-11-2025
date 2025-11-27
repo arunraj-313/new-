@@ -1,0 +1,66 @@
+[HttpPost]
+public ActionResult Login(string email, string password)
+{
+    try
+    {
+        using (SqlConnection con = new SqlConnection(connString))
+        {
+            con.Open();
+
+            // 1️⃣ CHECK ADMIN FIRST
+            string adminQuery = @"SELECT AdminID, FullName, Email, Role 
+                                  FROM Admins 
+                                  WHERE Email=@Email AND PasswordHash=@Password";
+
+            SqlCommand adminCmd = new SqlCommand(adminQuery, con);
+            adminCmd.Parameters.AddWithValue("@Email", email);
+            adminCmd.Parameters.AddWithValue("@Password", password);
+
+            SqlDataReader adminDr = adminCmd.ExecuteReader();
+
+            if (adminDr.Read())
+            {
+                // Set Admin session
+                Session["UserID"] = adminDr["AdminID"].ToString();
+                Session["AdminID"] = adminDr["AdminID"].ToString();
+                Session["FullName"] = adminDr["FullName"].ToString();
+                Session["Role"] = "Admin";
+
+                TempData["success"] = "Admin Login Successful!";
+                return RedirectToAction("AdminDashboard", "Admin");
+            }
+            adminDr.Close(); // Must close before next query
+
+            // 2️⃣ CHECK USER NEXT
+            string userQuery = @"SELECT UserID, FullName, Email, Role 
+                                 FROM Users 
+                                 WHERE Email=@Email AND PasswordHash=@Password";
+
+            SqlCommand userCmd = new SqlCommand(userQuery, con);
+            userCmd.Parameters.AddWithValue("@Email", email);
+            userCmd.Parameters.AddWithValue("@Password", password);
+
+            SqlDataReader userDr = userCmd.ExecuteReader();
+
+            if (userDr.Read())
+            {
+                // Set User session
+                Session["UserID"] = userDr["UserID"].ToString();
+                Session["FullName"] = userDr["FullName"].ToString();
+                Session["Role"] = "User";
+
+                TempData["success"] = "Login Successful!";
+                return RedirectToAction("Index", "Home");
+            }
+
+            // 3️⃣ NONE FOUND → ERROR
+            TempData["error"] = "Invalid Email or Password!";
+            return View();
+        }
+    }
+    catch (Exception ex)
+    {
+        TempData["error"] = "Login error: " + ex.Message;
+        return View();
+    }
+}
