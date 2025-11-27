@@ -1,0 +1,152 @@
+﻿/* MAIN HEADER */
+.top-header {
+    width: 100%;
+    background: #ffffff;
+    border-bottom: 1px solid #e6e6e6;
+    animation: slideDown 0.7s ease;
+}
+
+.brand-title {
+    color: #007bff;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    transition: 0.3s ease;
+}
+
+    .brand-title:hover {
+        transform: scale(1.05);
+        color: #0056c9;
+    }
+/* HEADER LINKS */
+.header-link {
+    color: #3a3a3a;
+    margin-right: 25px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: 0.3s ease;
+}
+
+    .header-link:hover {
+        color: #007bff;
+        transform: translateY(-2px);
+    }
+/* LOGIN BUTTON */
+.login-btn {
+    background: #6c2bff;
+    color: #fff !important;
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+    .login-btn:hover {
+        background: #4b18c8;
+        transform: scale(1.05);
+    }
+/* CITY DROPDOWN */
+.city-select {
+    padding: 10px 14px;
+    border: 2px solid #6c2bff;
+    border-radius: 6px;
+    outline: none;
+    font-size: 16px;
+}
+/* SEARCH BOX */
+.search-box {
+    flex: 1;
+    padding: 10px 14px;
+    border: 2px solid #6c2bff;
+    border-radius: 6px;
+    outline: none;
+    font-size: 16px;
+}
+/* PAGE BUTTON */
+.search-btn {
+    background: #6c2bff;
+    color: #fff;
+    padding: 10px 22px;
+    border-radius: 6px;
+    border: none;
+    font-weight: 600;
+    transition: .3s;
+}
+
+    .search-btn:hover {
+        background: #4b18c8;
+        transform: translateY(-3px);
+    }
+/* Razor-safe Animations */
+@keyframes slideDown {
+    from {
+        transform: translateY(-40px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Gradient Background */
+.dashboard-bg {
+    background: linear-gradient(135deg, #a044ff 0%, #ff6a88 100%);
+    min-height: 100vh;
+    padding: 40px;
+}
+
+/* White Card Container */
+.dashboard-card {
+    background: #fff;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+/* Top Navigation Tabs */
+.dashboard-tabs a {
+    padding: 12px 22px;
+    font-weight: 600;
+    color: #555;
+    text-decoration: none;
+    border-radius: 30px;
+    margin-right: 10px;
+}
+
+    .dashboard-tabs a.active {
+        background: #6c5ce7;
+        color: #fff;
+    }
+
+/* Add Button */
+.btn-add {
+    background: #ff4d8a;
+    color: white !important;
+    padding: 10px 18px;
+    border-radius: 25px;
+    font-weight: bold;
+    float: right;
+}
+
+.table thead {
+    background: #f7f7f7;
+    font-weight: bold;
+}
+
+.table tbody tr td {
+    vertical-align: middle;
+}
+
+/* Circular Icon */
+.icon-circle {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 15px;
+}

@@ -1,0 +1,79 @@
+﻿@{
+
+    ViewBag.Title = "Admin Dashboard";
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+
+<div class="container-fluid">
+
+    <h2 class="mb-3">Welcome, @Session["FullName"]</h2>
+    <p class="text-muted">Manage your PG Listings and Users.</p>
+
+    <!-- Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body text-center">
+                    <h3>@ViewBag.TotalPGs</h3>
+                    <p>PG Listings</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body text-center">
+                    <h3>@ViewBag.TotalUsers</h3>
+                    <p>Users</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-warning text-white shadow-sm">
+                <div class="card-body text-center">
+                    <h3>@ViewBag.TotalAdmins</h3>
+                    <p>Admins</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <h4 class="mt-4">Recent PG Listings</h4>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>PG Name</th>
+                <th>Location</th>
+                <th>Type</th>
+                <th>Rent</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @if (Model != null && Model.RecentPGs != null)
+            {
+                foreach (var pg in Model.RecentPGs)
+                {
+                    <tr>
+                        <td>@pg.PGName</td>
+                        <td>@pg.Location</td>
+                        <td>@pg.Type</td>
+                        <td>@pg.Rent</td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="4" class="text-center text-muted">No data found.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+</div>

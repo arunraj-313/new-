@@ -1,0 +1,404 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using PG_Management.Models;
+using System.Configuration;
+using System.Data.SqlClient;
+using System.Data;
+
+namespace PG_Management.Controllers
+{
+    public class AccountController : Controller
+    {
+        // DB Connection
+        string connString = ConfigurationManager.ConnectionStrings["EasyPG"].ConnectionString;
+
+
+
+        // ===================== REGISTER ======================
+        [HttpGet]
+        public ActionResult Register()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult Register(UserModel user, string Role)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["error"] = "Please fill all required fields correctly!";
+                return View(user);
+            }
+
+            if (user.Password != user.ConfirmPassword)
+            {
+                TempData["error"] = "Passwords do not match!";
+                return View(user);
+            }
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(connString))
+                {
+                    string query = "";
+
+                    if (Role.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+                    {
+                        query = @"INSERT INTO Admins (FullName, Email, PhoneNo, PasswordHash, Role)
+                          VALUES (@FullName, @Email, @PhoneNo, @PasswordHash, @Role)";
+                    }
+                    else
+                    {
+                        query = @"INSERT INTO Users (FullName, Email, Gender, PhoneNo, Address, IDProofType, IDProofNumber, Occupation, PasswordHash, Role)
+                          VALUES (@FullName, @Email, @Gender, @PhoneNo, @Address, @IDProofType, @IDProofNumber, @Occupation, @PasswordHash, @Role)";
+                    }
+                    SqlCommand cmd = new SqlCommand(query, con);
+                    cmd.Parameters.AddWithValue("@FullName", user.FullName);
+                    cmd.Parameters.AddWithValue("@Email", user.Email);
+                    cmd.Parameters.AddWithValue("@PhoneNo", user.PhoneNo);
+                    cmd.Parameters.AddWithValue("@PasswordHash", user.Password);
+                    cmd.Parameters.AddWithValue("@Role", Role);
+
+                    // Add extra fields for Users only
+                    if (Role == "User")
+                    {
+                        cmd.Parameters.AddWithValue("@Gender",(object)user.Gender ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Address", user.Address ?? "");
+                        cmd.Parameters.AddWithValue("@IDProofType", user.IDProofType ?? "");
+                        cmd.Parameters.AddWithValue("@IDProofNumber", user.IDProofNumber ?? "");
+                        cmd.Parameters.AddWithValue("@Occupation", user.Occupation ?? "");
+                    }
+                    con.Open();
+                    cmd.ExecuteNonQuery();
+                }
+
+                TempData["success"] = "Registered Successfully!";
+                return RedirectToAction("Login");
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = "Registration failed: " + ex.Message;
+                return View(user);
+            }
+        }
+        // ===================== LOGIN ======================
+
+        [HttpGet]
+        public ActionResult Login()
+        {
+            TempData["error"] = null; // Clear previous error
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult Login(string email, string password)
+        {
+            try
+            {
+                using (SqlConnection con = new SqlConnection(connString))
+                {
+                    con.Open();
+
+                    // Check Admin
+                    string adminQuery = @"SELECT AdminID AS ID, FullName, 'Admin' AS Role 
+                                  FROM Admins 
+                                  WHERE Email=@Email AND PasswordHash=@Password";
+
+                    using (SqlCommand adminCmd = new SqlCommand(adminQuery, con))
+                    {
+                        adminCmd.Parameters.Add(new SqlParameter("@Email", SqlDbType.VarChar) { Value = email });
+                        adminCmd.Parameters.Add(new SqlParameter("@Password", SqlDbType.VarChar) { Value = password });
+
+                        using (SqlDataReader dr = adminCmd.ExecuteReader())
+                        {
+                            if (dr.Read())
+                            {
+                                Session["UserID"] = dr["ID"].ToString();
+                                Session["AdminID"] = dr["ID"].ToString();
+                                Session["FullName"] = dr["FullName"].ToString();
+                                Session["Role"] = dr["Role"].ToString();
+
+                                TempData["success"] = "Admin Login Successful!";
+                                return RedirectToAction("AdminDashboard", "Admin");
+                            }
+                        }
+                    }
+
+                    // Check User
+                    string userQuery = @"SELECT UserID AS ID, FullName, 'User' AS Role 
+                                 FROM Users 
+                                 WHERE Email=@Email AND PasswordHash=@Password";
+
+                    using (SqlCommand userCmd = new SqlCommand(userQuery, con))
+                    {
+                        userCmd.Parameters.Add(new SqlParameter("@Email", SqlDbType.VarChar) { Value = email });
+                        userCmd.Parameters.Add(new SqlParameter("@Password", SqlDbType.VarChar) { Value = password });
+
+                        using (SqlDataReader dr = userCmd.ExecuteReader())
+                        {
+                            if (dr.Read())
+                            {
+                                Session["UserID"] = dr["ID"].ToString();
+                                Session["FullName"] = dr["FullName"].ToString();
+                                Session["Role"] = dr["Role"].ToString();
+
+                                TempData["success"] = "Login Successful!";
+                                return RedirectToAction("Index", "Home");
+                            }
+                        }
+                    }
+
+                    TempData["error"] = "Invalid Email or Password!";
+                    return View();
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = "Login error: " + ex.Message;
+                return View();
+            }
+        }
+
+
+        // ===================== LOGOUT ======================
+        public ActionResult Logout()
+        {
+            Session.Clear();
+            Session.Abandon();
+            TempData["success"] = "Logged out successfully!";
+            return RedirectToAction("Login");
+        }
+
+        // ===================== FORGOT PASSWORD ======================
+        [HttpGet]
+        public ActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult ForgotPassword(string email, string newPassword, string confirmPassword)
+        {
+            if (newPassword != confirmPassword)
+            {
+                TempData["error"] = "Password mismatch!";
+                return View();
+            }
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(connString))
+                {
+                    string query = "UPDATE Users SET PasswordHash=@PasswordHash WHERE Email=@Email";
+                    SqlCommand cmd = new SqlCommand(query, con);
+                    cmd.Parameters.AddWithValue("@PasswordHash", newPassword); // Plain password
+                    cmd.Parameters.AddWithValue("@Email", email);
+                    con.Open();
+                    int rows = cmd.ExecuteNonQuery();
+                    if (rows == 1)
+                    {
+                        TempData["success"] = "Password Updated Successfully!";
+                        return RedirectToAction("Login");
+                    }
+                    else
+                    {
+                        TempData["error"] = "Email not found!";
+                        return View();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = "Error updating password: " + ex.Message;
+                return View();
+            }
+        }
+    }
+}
+
+//using System;
+//using System.Configuration;
+//using System.Data.SqlClient;
+//using System.Web.Mvc;
+//using PG.Models;
+
+//namespace PG.Controllers
+//{
+//    public class AccountController : Controller
+//    {
+//        // DB Connection
+//        private readonly string connString = ConfigurationManager.ConnectionStrings["EasyPG"].ConnectionString;
+
+//        // ===================== REGISTER ======================
+//        [HttpGet]
+//        public ActionResult Register()
+//        {
+//            return View();
+//        }
+
+//        [HttpPost]
+//        public ActionResult Register(UserModel user, string Role)
+//        {
+//            if (!ModelState.IsValid)
+//            {
+//                TempData["error"] = "Please fill all required fields correctly!";
+//                return View(user);
+//            }
+
+//            if (user.Password != user.ConfirmPassword)
+//            {
+//                TempData["error"] = "Passwords do not match!";
+//                return View(user);
+//            }
+
+//            try
+//            {
+//                using (SqlConnection con = new SqlConnection(connString))
+//                {
+//                    string query = Role == "Admin"
+//                        ? @"INSERT INTO Admins (FullName, Email, PhoneNo, PasswordHash, Role)
+//                           VALUES (@FullName, @Email, @PhoneNo, @PasswordHash, @Role)"
+//                        : @"INSERT INTO Users (FullName, Email, Gender, PhoneNo, Address, IDProofType, IDProofNumber, Occupation, PasswordHash, Role)
+//                           VALUES (@FullName, @Email, @Gender, @PhoneNo, @Address, @IDProofType, @IDProofNumber, @Occupation, @PasswordHash, @Role)";
+
+//                    SqlCommand cmd = new SqlCommand(query, con);
+//                    cmd.Parameters.AddWithValue("@FullName", user.FullName);
+//                    cmd.Parameters.AddWithValue("@Email", user.Email);
+//                    cmd.Parameters.AddWithValue("@PhoneNo", user.PhoneNo);
+//                    cmd.Parameters.AddWithValue("@PasswordHash", user.Password);
+//                    cmd.Parameters.AddWithValue("@Role", Role);
+
+//                    if (Role == "User")
+//                    {
+//                        cmd.Parameters.AddWithValue("@Gender", user.Gender ?? "");
+//                        cmd.Parameters.AddWithValue("@Address", user.Address ?? "");
+//                        cmd.Parameters.AddWithValue("@IDProofType", user.IDProofType ?? "");
+//                        cmd.Parameters.AddWithValue("@IDProofNumber", user.IDProofNumber ?? "");
+//                        cmd.Parameters.AddWithValue("@Occupation", user.Occupation ?? "");
+//                    }
+
+//                    con.Open();
+//                    cmd.ExecuteNonQuery();
+//                }
+
+//                TempData["success"] = "Registered Successfully!";
+//                return RedirectToAction("Login");
+//            }
+//            catch (Exception ex)
+//            {
+//                TempData["error"] = "Registration failed: " + ex.Message;
+//                return View(user);
+//            }
+//        }
+
+//        // ===================== LOGIN ======================
+//        [HttpGet]
+//        public ActionResult Login()
+//        {
+//            return View();
+//        }
+
+//        [HttpPost]
+//        public ActionResult Login(string email, string password, string role)
+//        {
+//            try
+//            {
+//                using (SqlConnection con = new SqlConnection(connString))
+//                {
+//                    string query = role == "Admin"
+//                        ? "SELECT * FROM Admins WHERE Email=@Email AND PasswordHash=@PasswordHash"
+//                        : "SELECT * FROM Users WHERE Email=@Email AND PasswordHash=@PasswordHash";
+
+//                    SqlCommand cmd = new SqlCommand(query, con);
+//                    cmd.Parameters.AddWithValue("@Email", email);
+//                    cmd.Parameters.AddWithValue("@PasswordHash", password);
+//                    con.Open();
+//                    SqlDataReader dr = cmd.ExecuteReader();
+
+//                    if (dr.Read())
+//                    {
+//                        Session["UserID"] = dr[role == "Admin" ? "AdminID" : "UserID"].ToString();
+//                        Session["FullName"] = dr["FullName"].ToString();
+//                        Session["Role"] = dr["Role"].ToString();
+
+//                        TempData["success"] = "Login Successful!";
+
+//                        return role == "Admin"
+//                            ? RedirectToAction("AdminDashboard", "Admin")
+//                            : RedirectToAction("Index", "Home");
+//                    }
+//                    else
+//                    {
+//                        TempData["error"] = role == "Admin"
+//                            ? "User is not an Admin!"
+//                            : "Invalid Email or Password!";
+//                        return View();
+//                    }
+//                }
+//            }
+//            catch (Exception ex)
+//            {
+//                TempData["error"] = "Login failed: " + ex.Message;
+//                return View();
+//            }
+//        }
+
+//        // ===================== LOGOUT ======================
+//        public ActionResult Logout()
+//        {
+//            Session.Clear();
+//            TempData["success"] = "Logged out successfully!";
+//            return RedirectToAction("Login");
+//        }
+
+//        // ===================== FORGOT PASSWORD ======================
+//        [HttpGet]
+//        public ActionResult ForgotPassword()
+//        {
+//            return View();
+//        }
+
+//        [HttpPost]
+//        public ActionResult ForgotPassword(string email, string newPassword, string confirmPassword)
+//        {
+//            if (newPassword != confirmPassword)
+//            {
+//                TempData["error"] = "Password mismatch!";
+//                return View();
+//            }
+
+//            try
+//            {
+//                using (SqlConnection con = new SqlConnection(connString))
+//                {
+//                    string query = "UPDATE Users SET PasswordHash=@PasswordHash WHERE Email=@Email";
+//                    SqlCommand cmd = new SqlCommand(query, con);
+//                    cmd.Parameters.AddWithValue("@PasswordHash", newPassword);
+//                    cmd.Parameters.AddWithValue("@Email", email);
+//                    con.Open();
+//                    int rows = cmd.ExecuteNonQuery();
+
+//                    if (rows == 1)
+//                    {
+//                        TempData["success"] = "Password Updated Successfully!";
+//                        return RedirectToAction("Login");
+//                    }
+//                    else
+//                    {
+//                        TempData["error"] = "Email not found!";
+//                        return View();
+//                    }
+//                }
+//            }
+//            catch (Exception ex)
+//            {
+//                TempData["error"] = "Error updating password: " + ex.Message;
+//                return View();
+//            }
+//        }
+//    }
+//}
+

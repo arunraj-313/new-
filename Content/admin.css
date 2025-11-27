@@ -1,0 +1,75 @@
+﻿
+/* Light app background */
+body.bg-light {
+    background-color: #f5f6f8 !important;
+}
+
+/* Header border for clean separation */
+.top-header {
+    border-bottom: 1px solid #e6e8eb;
+}
+
+/* Sidebar styles (light UI kit style) */
+.sidebar {
+    background: #fff;
+}
+
+    .sidebar .menu-title {
+        font-size: .75rem;
+        color: #9aa1a9;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        margin-bottom: .25rem;
+    }
+
+    .sidebar .menu-link {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        padding: .5rem .75rem;
+        border-radius: .55rem;
+        color: #333;
+        text-decoration: none;
+    }
+
+        .sidebar .menu-link:hover {
+            background: #f2f3f5;
+        }
+
+        .sidebar .menu-link.active {
+            background: #eef2ff;
+            color: #2f3ebd;
+        }
+
+/* Optional: stat cards and table helpers used in AdminDashboard view */
+.card-stat {
+    border: 1px solid #e9ecef;
+    border-radius: .85rem;
+}
+
+    .card-stat .icon {
+        padding: .65rem;
+        font-size: 1.1rem;
+    }
+
+    .card-stat .label {
+        font-weight: 500;
+        color: #6c757d;
+    }
+
+    .card-stat .value {
+        font-weight: 700;
+    }
+
+.table thead th {
+    font-weight: 600;
+}
+
+.table td, .table th {
+    border-color: #edf0f2;
+}
+
+.badge.bg-success-subtle {
+    background: #eaf7ef;
+    color: #1f8f4e;
+}

@@ -1,0 +1,51 @@
+﻿@{
+    ViewBag.Title = "Login";
+    Layout = "~/Views/Shared/_Layout.cshtml"; // Remove if not using layout
+}
+
+<h2 class="text-center mt-3">User Login</h2>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+
+            <!-- Success/Error Messages -->
+            @if (TempData["success"] != null)
+            {
+                <div class="alert alert-success">@TempData["success"]</div>
+            }
+            @if (TempData["error"] != null)
+            {
+                <div class="alert alert-danger">@TempData["error"]</div>
+            }
+
+            <!-- Login Form -->
+            @using (Html.BeginForm("Login", "Account", FormMethod.Post))
+            {
+                <div class="mb-3">
+                    <label class="form-label">Email or Username</label>
+                    @Html.TextBox("email", null, new { @class = "form-control", required = "required", placeholder = "Enter your email" })
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    @Html.Password("password", null, new { @class = "form-control", required = "required", placeholder = "Enter your password" })
+                </div>
+
+                @*<div class="mb-3">
+                    <label class="form-label">Select Role</label>
+                    @Html.DropDownList("role", new SelectList(new[] { "User", "Admin" }), "Select Role", new { @class = "form-control", required = "required" })
+                </div>*@
+
+                <button type="submit" class="btn btn-primary w-100 mt-3">Login</button>
+
+                <div class="text-center mt-3">
+                    <a href="/Account/ForgotPassword">Forgot Password?</a>
+                </div>
+                <div class="text-center mt-2">
+                    <a href="/Account/Register">New User? Register Here</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

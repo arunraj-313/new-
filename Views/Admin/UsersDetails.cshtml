@@ -1,0 +1,53 @@
+﻿@model IEnumerable<PG.Models.UserModel>
+@{
+    ViewBag.Title = "PG Users Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2 class="mb-3">Users Staying in Your PG(s)</h2>
+
+@if (TempData["success"] != null)
+{
+    <div class="alert alert-success">@TempData["success"]</div>
+}
+@if (TempData["error"] != null)
+{
+    <div class="alert alert-danger">@TempData["error"]</div>
+}
+
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>User ID</th>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Gender</th>
+            <th>PG Details</th>
+            <th>Rent</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.UserID</td>
+                <td>@user.FullName</td>
+                <td>@user.Email</td>
+                <td>@user.PhoneNo</td>
+                <td>@user.Gender</td>
+                <td>@user.Address</td>
+                <td>@user.Occupation</td>
+                <td>
+                    <a href="@Url.Action(" EditUser", "Admin" , new { id=user.UserID })" class="btn btn-sm btn-warning">
+                        <i class="fa fa-edit"></i> Edit
+                    </a>
+                    <a href="@Url.Action(" DeleteUser", "Admin" , new { id=user.UserID })" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this user?');">
+                        <i class="fa fa-trash"></i> Delete
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

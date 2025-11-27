@@ -1,0 +1,70 @@
+﻿@model PG_Management.Models.PGListingModel
+@{
+    ViewBag.Title = "Edit PG Listing";
+    Layout = "~/Views/Shared/_Layout.cshtml"; // Remove if not using layout
+}
+
+<h2 class="mb-3 text-center">Edit PG Listing</h2>
+
+@if (TempData["error"] != null)
+{
+    <div class="alert alert-danger">@TempData["error"]</div>
+}
+@if (TempData["success"] != null)
+{
+    <div class="alert alert-success">@TempData["success"]</div>
+}
+
+<div class="card p-4 shadow-sm">
+    @using (Html.BeginForm("EditPG", "PG", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        @Html.HiddenFor(m => m.PGID)
+
+        <div class="mb-3">
+            <label class="form-label">PG Name</label>
+            @Html.TextBoxFor(m => m.PGName, new { @class = "form-control", required = "required" })
+            @Html.ValidationMessageFor(m => m.PGName, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Location</label>
+            @Html.TextBoxFor(m => m.Location, new { @class = "form-control", required = "required" })
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">PG Type</label>
+            @Html.DropDownListFor(m => m.Type, new SelectList(new[] { "Boys", "Girls", "Mixed" }, Model.Type), new { @class = "form-control" })
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Rent</label>
+            @Html.TextBoxFor(m => m.Rent, new { @class = "form-control", type = "number", required = "required" })
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Room Type</label>
+            @Html.DropDownListFor(m => m.RoomType, new SelectList(new[] { "Single", "Double", "Sharing" }, Model.RoomType), new { @class = "form-control" })
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Current Image</label><br />
+            @if (!string.IsNullOrEmpty(Model.ImageURL))
+            {
+                <img src="@Model.ImageURL" alt="PG Image" style="width:150px;height:100px;" class="mb-2" />
+            }
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Upload New Image</label>
+            <input type="file" name="ImageFile" class="form-control" accept="image/*" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = "3" })
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">Update</button>
+        <a href="@Url.Action("ViewPG", "PG")" class="btn btn-secondary w-100 mt-2">Cancel</a>
+    }
+</div>

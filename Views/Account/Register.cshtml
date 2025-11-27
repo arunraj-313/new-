@@ -1,0 +1,273 @@
+﻿@*@{
+        viewbag.title = "register";
+        layout = "~/views/shared/_layout.cshtml";   // remove this line if you don't use layout
+    }
+    <h2 class="text-center mt-3">user registration</h2>
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <form method="post" action="/account/register">
+                    <!-- full name -->
+                    <div class="mb-3">
+                        <label class="form-label">full name</label>
+                        <input type="text" name="fullname" class="form-control" required />
+                    </div>
+                    <!-- email -->
+                    <div class="mb-3">
+                        <label class="form-label">email</label>
+                        <input type="email" name="email" class="form-control" required />
+                    </div>
+                    <!-- gender -->
+                    <div class="mb-3">
+                        <label class="form-label">gender</label>
+                        <select name="gender" class="form-control" required>
+                            <option value="">select gender</option>
+                            <option>male</option>
+                            <option>female</option>
+                            <option>other</option>
+                        </select>
+                    </div>
+                    <!-- phone -->
+                    <div class="mb-3">
+                        <label class="form-label">phone number</label>
+                        <input type="text" name="phoneno" class="form-control" required />
+                    </div>
+                    <!-- address -->
+                    <div class="mb-3">
+                        <label class="form-label">address</label>
+    <textarea name="address" class="form-control" rows="2" required></textarea>
+                    </div>
+                    <!-- id proof type -->
+                    <div class="mb-3">
+                        <label class="form-label">id proof type</label>
+                        <select name="idprooftype" class="form-control" required>
+                            <option value="">select id proof</option>
+                            <option>aadhar</option>
+                            <option>driving licence</option>
+                        </select>
+                    </div>
+                    <!-- id proof number -->
+                    <div class="mb-3">
+                        <label class="form-label">id proof number</label>
+                        <input type="text" name="idproofnumber" class="form-control" required />
+                    </div>
+                    <!-- occupation -->
+                    <div class="mb-3">
+                        <label class="form-label">occupation</label>
+                        <select name="occupation" class="form-control" required>
+                            <option value="">select occupation</option>
+                            <option>student</option>
+                            <option>working professional</option>
+                        </select>
+                    </div>
+                    <!-- password -->
+                    <div class="mb-3">
+                        <label class="form-label">password</label>
+                        <input type="password" name="password" class="form-control" required />
+                    </div>
+                    <!-- confirm password -->
+                    <div class="mb-3">
+                        <label class="form-label">confirm password</label>
+                        <input type="password" name="confirmpassword" class="form-control" required />
+                    </div>
+                    <!-- role -->
+                    <div class="mb-3">
+                        <label class="form-label">role</label>
+                        <select name="role" class="form-control">
+                            <option>user</option>
+                            <option>admin</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 mt-3">
+                        register
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>*@
+
+@*@model pg.models.usermodel
+    @{
+        viewbag.title = "register";
+        layout = "~/views/shared/_layout.cshtml"; // remove if not using layout
+    }
+
+    <h2 class="text-center mt-3">user registration</h2>
+
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+
+                 success/error messages
+                @if (tempdata["success"] != null)
+                {
+                    <div class="alert alert-success">@tempdata["success"]</div>
+                }
+                @if (tempdata["error"] != null)
+                {
+                    <div class="alert alert-danger">@tempdata["error"]</div>
+                }
+
+                @using (html.beginform("register", "account", formmethod.post))
+                {
+                    @html.validationsummary(true, "", new { @class = "text-danger" })
+
+                    <div class="mb-3">
+                        <label class="form-label">full name</label>
+                        @html.textboxfor(m => m.fullname, new { @class = "form-control", required = "required" })
+                        @html.validationmessagefor(m => m.fullname, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">email</label>
+                        @html.textboxfor(m => m.email, new { @class = "form-control", type = "email", required = "required" })
+                        @html.validationmessagefor(m => m.email, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">gender</label>
+                        @html.dropdownlistfor(m => m.gender, new selectlist(new[] { "male", "female", "other" }), "select gender", new { @class = "form-control", required = "required" })
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">phone number</label>
+                        @html.textboxfor(m => m.phoneno, new { @class = "form-control", required = "required" })
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">address</label>
+                        @html.textareafor(m => m.address, new { @class = "form-control", rows = "2", required = "required" })
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">id proof type</label>
+                        @html.dropdownlistfor(m => m.idprooftype, new selectlist(new[] { "aadhar", "driving licence" }), "select id proof", new { @class = "form-control", required = "required" })
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">id proof number</label>
+                        @html.textboxfor(m => m.idproofnumber, new { @class = "form-control", required = "required" })
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">occupation</label>
+                        @html.dropdownlistfor(m => m.occupation, new selectlist(new[] { "student", "working professional" }), "select occupation", new { @class = "form-control", required = "required" })
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">password</label>
+                        @html.passwordfor(m => m.password, new { @class = "form-control", required = "required" })
+                        @html.validationmessagefor(m => m.password, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">confirm password</label>
+                        @html.passwordfor(m => m.confirmpassword, new { @class = "form-control", required = "required" })
+                        @html.validationmessagefor(m => m.confirmpassword, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">role</label>
+                        @html.dropdownlistfor(m => m.role, new selectlist(new[] { "user", "admin" }), "select role", new { @class = "form-control" })
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 mt-3">register</button>
+                }
+            </div>
+        </div>
+    </div>*@
+
+
+
+@model PG.Models.UserModel
+@{
+    ViewBag.Title = "Register";
+    Layout = "~/Views/Shared/_Layout.cshtml"; // Remove if not using layout
+}
+
+<h2 class="text-center mt-3">User Registration</h2>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+            <!-- Success/Error Messages -->
+            @if (TempData["success"] != null)
+            {
+                <div class="alert alert-success">@TempData["success"]</div>
+            }
+            @if (TempData["error"] != null)
+            {
+                <div class="alert alert-danger">@TempData["error"]</div>
+            }
+
+            @using (Html.BeginForm("Register", "Account", FormMethod.Post))
+            {
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                <div class="mb-3">
+                    <label class="form-label">Full Name</label>
+                    @Html.TextBoxFor(m => m.FullName, new { @class = "form-control", required = "required" })
+                    @Html.ValidationMessageFor(m => m.FullName, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    @Html.TextBoxFor(m => m.Email, new { @class = "form-control", type = "email", required = "required" })
+                    @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Gender</label>
+                    @Html.DropDownListFor(m => m.Gender, new SelectList(new[] { "Male", "Female", "Other" }), "Select Gender", new { @class = "form-control", required = "required" })
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Phone Number</label>
+                    @Html.TextBoxFor(m => m.PhoneNo, new { @class = "form-control", required = "required" })
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Address</label>
+                    @Html.TextAreaFor(m => m.Address, new { @class = "form-control", rows = "2", required = "required" })
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">ID Proof Type</label>
+                    @Html.DropDownListFor(m => m.IDProofType, new SelectList(new[] { "Aadhar", "Driving Licence" }), "Select ID Proof", new { @class = "form-control", required = "required" })
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">ID Proof Number</label>
+                    @Html.TextBoxFor(m => m.IDProofNumber, new { @class = "form-control", required = "required" })
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Occupation</label>
+                    @Html.DropDownListFor(m => m.Occupation, new SelectList(new[] { "Student", "Working Professional" }), "Select Occupation", new { @class = "form-control", required = "required" })
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    @Html.PasswordFor(m => m.Password, new { @class = "form-control", required = "required" })
+                    @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Confirm Password</label>
+                    @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control", required = "required" })
+                    @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Role</label>
+                    @Html.DropDownListFor(m => m.Role, new SelectList(new[] { "User", "Admin" }), "Select Role", new { @class = "form-control", required = "required" })
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 mt-3">Register</button>
+            }
+        </div>
+    </div>
+</div>
+
+
