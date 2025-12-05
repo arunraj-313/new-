@@ -1,0 +1,512 @@
+using StayEase.Models;
+using StayEase.ViewModels;
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Data.SqlClient;
+using System.IO;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using System.Data.Entity;
+using StayEase.Models.ViewModels;
+
+namespace StayEase.Controllers
+{
+    public class AdminController : Controller
+    {
+        // SESSION CHECK
+
+        private bool IsAdmin()
+        {
+            var role = Convert.ToString(Session["UserRole"]);
+            return string.Equals(role?.Trim(), "Admin", StringComparison.OrdinalIgnoreCase);
+        }
+
+        //    private bool isadmin()
+        //{
+        //    return session["userrole"] != null &&
+        //           session["userrole"].tostring() == "admin";
+        //}
+
+        // ---------------- DASHBOARD ----------------------
+        public ActionResult Dashboard()
+        {
+            if (!IsAdmin())
+                return RedirectToAction("Login", "Account");
+
+            return View();
+        }
+
+        public ActionResult Logout()
+        {
+            Session.Clear();
+            return RedirectToAction("Login", "Account");
+        }
+
+
+        
+        private string conn = ConfigurationManager.ConnectionStrings["StayEaseConn"].ConnectionString;
+
+        // ---------------- PG LIST ----------------------
+        public ActionResult PGList()
+        {
+            var pgList = new List<PG>();
+
+            using (SqlConnection con = new SqlConnection(conn))
+            {
+                string query = "SELECT * FROM PGs ORDER BY PGID DESC";
+                using (SqlCommand cmd = new SqlCommand(query, con))
+                {
+                    con.Open();
+                    using (SqlDataReader dr = cmd.ExecuteReader())
+                    {
+                        while (dr.Read())
+                        {
+                            pgList.Add(new PG
+                            {
+                                PGID = Convert.ToInt32(dr["PGID"]),
+                                PGName = dr["PGName"].ToString(),
+                                City = dr["City"].ToString(),
+                                Location = dr["Location"].ToString(),
+                                PGType = dr["PGType"].ToString(),
+                                Rent = Convert.ToDecimal(dr["Rent"]),
+                                Contact = dr["Contact"].ToString(),
+                                ImagePath = dr["ImagePath"].ToString(),
+                                CityId = Convert.ToInt32(dr["CityId"])
+                            });
+                        }
+                    }
+                }
+            }
+            return View(pgList);
+        }
+
+        // ---------------- ADD PG (GET) ----------------------
+        public ActionResult AddPG()
+        {
+            ViewBag.Cities = GetCities();
+            return View();
+        }
+
+        // ---------------- ADD PG (POST) ----------------------
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult AddPG(PG model, HttpPostedFileBase ImageFile)
+        {
+            try
+            {
+                string imgPath = model.ImagePath;
+
+                if (ImageFile != null && ImageFile.ContentLength > 0)
+                {
+                    string folder = Server.MapPath("~/PGImages/");
+                    if (!Directory.Exists(folder))
+                        Directory.CreateDirectory(folder);
+
+                    string fileName = Guid.NewGuid() + Path.GetExtension(ImageFile.FileName);
+                    string fullPath = Path.Combine(folder, fileName);
+                    ImageFile.SaveAs(fullPath);
+
+                    imgPath = "/PGImages/" + fileName;
+                }
+
+                using (SqlConnection con = new SqlConnection(conn))
+                {
+                    string query = @"INSERT INTO PGs 
+                        (PGName, City, Location, PGType, Rent, Facilities, FoodMenu, Contact, ImagePath, CityId)
+                        VALUES 
+                        (@PGName, @City, @Location, @PGType, @Rent, @Facilities, @FoodMenu, @Contact, @ImagePath, @CityId)";
+
+                    using (SqlCommand cmd = new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue("@PGName", model.PGName ?? "");
+                        cmd.Parameters.AddWithValue("@City", model.City ?? "");
+                        cmd.Parameters.AddWithValue("@Location", model.Location ?? "");
+                        cmd.Parameters.AddWithValue("@PGType", model.PGType ?? "");
+                        cmd.Parameters.AddWithValue("@Rent", model.Rent);
+                        cmd.Parameters.AddWithValue("@Facilities", model.Facilities ?? "");
+                        cmd.Parameters.AddWithValue("@FoodMenu", model.FoodMenu ?? "");
+                        cmd.Parameters.AddWithValue("@Contact", model.Contact ?? "");
+                        cmd.Parameters.AddWithValue("@ImagePath", imgPath ?? "");
+                        cmd.Parameters.AddWithValue("@CityId", model.CityId);
+
+                        con.Open();
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+
+                return RedirectToAction("PGList");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = ex.Message;
+                ViewBag.Cities = GetCities();
+                return View(model);
+            }
+        }
+
+        // ---------------- EDIT PG (GET) ----------------------
+        public ActionResult EditPG(int id)
+        {
+            var pg = new PG();
+
+            using (SqlConnection con = new SqlConnection(conn))
+            {
+                string query = "SELECT * FROM PGs WHERE PGID=@id";
+
+                using (SqlCommand cmd = new SqlCommand(query, con))
+                {
+                    cmd.Parameters.AddWithValue("@id", id);
+                    con.Open();
+
+                    using (SqlDataReader dr = cmd.ExecuteReader())
+                    {
+                        if (dr.Read())
+                        {
+                            pg.PGID = id;
+                            pg.PGName = dr["PGName"].ToString();
+                            pg.City = dr["City"].ToString();
+                            pg.Location = dr["Location"].ToString();
+                            pg.PGType = dr["PGType"].ToString();
+                            pg.Rent = Convert.ToDecimal(dr["Rent"]);
+                            pg.Facilities = dr["Facilities"].ToString();
+                            pg.FoodMenu = dr["FoodMenu"].ToString();
+                            pg.Contact = dr["Contact"].ToString();
+                            pg.ImagePath = dr["ImagePath"].ToString();
+                            pg.CityId = Convert.ToInt32(dr["CityId"]);
+                        }
+                    }
+                }
+            }
+
+            ViewBag.Cities = GetCities();
+            return View(pg);
+        }
+
+        // ---------------- EDIT PG (POST) ----------------------
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult EditPG(PG model, HttpPostedFileBase ImageFile)
+        {
+            try
+            {
+                string imgPath = model.ImagePath;
+
+                if (ImageFile != null && ImageFile.ContentLength > 0)
+                {
+                    string folder = Server.MapPath("~/PGImages/");
+                    if (!Directory.Exists(folder))
+                        Directory.CreateDirectory(folder);
+
+                    string fileName = Guid.NewGuid() + Path.GetExtension(ImageFile.FileName);
+                    string fullPath = Path.Combine(folder, fileName);
+                    ImageFile.SaveAs(fullPath);
+
+                    imgPath = "/PGImages/" + fileName;
+                }
+
+                using (SqlConnection con = new SqlConnection(conn))
+                {
+                    string query = @"UPDATE PGs SET 
+                        PGName=@PGName, City=@City, Location=@Location, PGType=@PGType,
+                        Rent=@Rent, Facilities=@Facilities, FoodMenu=@FoodMenu,
+                        Contact=@Contact, ImagePath=@ImagePath, CityId=@CityId
+                        WHERE PGID=@PGID";
+
+                    using (SqlCommand cmd = new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue("@PGID", model.PGID);
+                        cmd.Parameters.AddWithValue("@PGName", model.PGName ?? "");
+                        cmd.Parameters.AddWithValue("@City", model.City ?? "");
+                        cmd.Parameters.AddWithValue("@Location", model.Location ?? "");
+                        cmd.Parameters.AddWithValue("@PGType", model.PGType ?? "");
+                        cmd.Parameters.AddWithValue("@Rent", model.Rent);
+                        cmd.Parameters.AddWithValue("@Facilities", model.Facilities ?? "");
+                        cmd.Parameters.AddWithValue("@FoodMenu", model.FoodMenu ?? "");
+                        cmd.Parameters.AddWithValue("@Contact", model.Contact ?? "");
+                        cmd.Parameters.AddWithValue("@ImagePath", imgPath ?? "");
+                        cmd.Parameters.AddWithValue("@CityId", model.CityId);
+
+                        con.Open();
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+
+                return RedirectToAction("PGList");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = ex.Message;
+                ViewBag.Cities = GetCities();
+                return View(model);
+            }
+        }
+
+        // ---------------- DELETE PG ----------------------
+        public ActionResult DeletePG(int id)
+        {
+            using (SqlConnection con = new SqlConnection(conn))
+            {
+                string query = "DELETE FROM PGs WHERE PGID=@id";
+
+                using (SqlCommand cmd = new SqlCommand(query, con))
+                {
+                    cmd.Parameters.AddWithValue("@id", id);
+                    con.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
+            return RedirectToAction("PGList");
+        }
+
+        // ---------------- CITIES HELPER ----------------------
+        private List<City> GetCities()
+        {
+            var list = new List<City>();
+
+            using (SqlConnection con = new SqlConnection(conn))
+            {
+                string q = "SELECT CityId, CityName FROM Cities ORDER BY CityName";
+
+                using (SqlCommand cmd = new SqlCommand(q, con))
+                {
+                    con.Open();
+                    using (SqlDataReader dr = cmd.ExecuteReader())
+                    {
+                        while (dr.Read())
+                        {
+                            list.Add(new City
+                            {
+                                CityId = Convert.ToInt32(dr["CityId"]),
+                                CityName = dr["CityName"].ToString()
+                            });
+                        }
+                    }
+                }
+            }
+
+            return list;
+        }
+
+        // ---------------- ROOMS MANAGEMENT ----------------------
+
+
+        public ActionResult ManageRooms()
+        {
+            using (var db = new ApplicationDbContext())
+            {
+                // Include PG to avoid null navigation property in view
+                var list = db.Rooms.Include(r => r.PG).ToList();
+                return View(list);
+            }
+        }
+
+        private ApplicationDbContext _db = new ApplicationDbContext();
+
+       
+
+        public ActionResult AddRoom()
+        {
+            using (var db = new ApplicationDbContext())
+            {
+                ViewBag.PGList = new SelectList(db.PGs.ToList(), "PGID", "PGName");
+                return View();
+            }
+        }
+
+        [HttpPost]
+        public ActionResult AddRoom(Room room)
+        {
+            using (var db = new ApplicationDbContext())
+            {
+                db.Rooms.Add(room);
+                db.SaveChanges();
+            }
+
+            return RedirectToAction("ManageRooms");
+        }
+
+        public ActionResult EditRoom(int id)
+        {
+            using (var db = new ApplicationDbContext())
+            {
+                var room = db.Rooms.Find(id);
+                ViewBag.PGList = new SelectList(db.PGs.ToList(), "PGID", "PGName", room.PGID);
+                return View(room);
+            }
+        }
+
+        [HttpPost]
+        public ActionResult EditRoom(Room room)
+        {
+            using (var db = new ApplicationDbContext())
+            {
+                var existing = db.Rooms.Find(room.RoomId);
+
+                existing.SharingType = room.SharingType;
+                existing.TotalBeds = room.TotalBeds;
+                existing.AvailableBeds = room.AvailableBeds;
+                existing.Price = room.Price;
+
+                db.SaveChanges();
+            }
+
+            return RedirectToAction("ManageRooms");
+        }
+
+        public ActionResult DeleteRoom(int id)
+        {
+            using (var db = new ApplicationDbContext())
+            {
+                var room = db.Rooms.Find(id);
+                db.Rooms.Remove(room);
+                db.SaveChanges();
+            }
+
+            return RedirectToAction("ManageRooms");
+        }
+
+        private readonly ApplicationDbContext _db = new ApplicationDbContext();
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) _db.Dispose();
+            base.Dispose(disposing);
+        }
+
+        // ---------------------------
+        // Manage Room Image (GET)
+        // ---------------------------
+        [HttpGet]
+        public ActionResult ManageRoomImage()
+        {
+            var vm = new RoomImageFormViewModel
+            {
+                PGList = _db.PGs
+                    .OrderBy(p => p.PGName)
+                    .Select(p => new SelectListItem { Value = p.PGID.ToString(), Text = p.PGName })
+                    .ToList(),
+
+                RoomList = Enumerable.Empty<SelectListItem>(),
+            };
+
+            return View(vm);
+        }
+
+        // ---------------------------
+        // Manage Room Image (POST)
+        // ---------------------------
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ManageRoomImage(RoomImageFormViewModel model)
+        {
+            // Rebuild dropdowns (for validation redisplay)
+            model.PGList = _db.PGs
+                .OrderBy(p => p.PGName)
+                .Select(p => new SelectListItem { Value = p.PGID.ToString(), Text = p.PGName })
+                .ToList();
+
+            model.RoomList = _db.Rooms
+                .Where(r => r.PGID == model.PGID)
+                .OrderBy(r => r.RoomId)
+                .Select(r => new SelectListItem { Value = r.RoomId.ToString(), Text = r.SharingType })
+                .ToList();
+
+            // Validate
+            if (model.Photo == null || model.Photo.ContentLength == 0)
+                ModelState.AddModelError("Photo", "Please choose an image.");
+
+            var allowed = new[] { "image/jpeg", "image/png", "image/webp" };
+            const int maxBytes = 10 * 1024 * 1024;
+
+            if (model.Photo != null && !allowed.Contains(model.Photo.ContentType))
+                ModelState.AddModelError("Photo", "Only JPEG/PNG/WebP allowed.");
+
+            if (model.Photo != null && model.Photo.ContentLength > maxBytes)
+                ModelState.AddModelError("Photo", "Max 10 MB.");
+
+            if (!ModelState.IsValid) return View(model);
+
+            // Save file to ~/images/rooms
+            var uploadsDir = Server.MapPath("~/images/rooms");
+            Directory.CreateDirectory(uploadsDir);
+
+            var ext = Path.GetExtension(model.Photo.FileName)?.ToLowerInvariant();
+            var uniqueName = $"{Guid.NewGuid():N}{ext}";
+            var filePath = Path.Combine(uploadsDir, uniqueName);
+            model.Photo.SaveAs(filePath);
+
+            // Save metadata in DB
+            var row = new RoomImageFile
+            {
+                PGID = model.PGID,
+                RoomId = model.RoomId,
+                AdminEmail = model.AdminEmail,
+                RoomType = model.RoomType,  // "Single" | "Double" | "Triple"
+                FileName = uniqueName,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _db.RoomImageFiles.Add(row);
+            _db.SaveChanges();
+
+            TempData["Msg"] = "✅ Room image saved.";
+            return RedirectToAction("ViewRoomImage", new { id = row.ImageId });
+        }
+
+        // ---------------------------
+        // View Room Image (GET)
+        // ---------------------------
+        [HttpGet]
+        public ActionResult ViewRoomImage(int id)
+        {
+            // Join RoomImageFiles with PGs to show PGName
+            var item = (from i in _db.RoomImageFiles
+                        join p in _db.PGs on i.PGID equals p.PGID into pgJoin
+                        from p in pgJoin.DefaultIfEmpty()
+                        where i.ImageId == id
+                        select new
+                        {
+                            i.ImageId,
+                            i.PGID,
+                            i.RoomId,
+                            i.AdminEmail,
+                            i.RoomType,
+                            i.FileName,
+                            PGName = p != null ? p.PGName : ""
+                        }).FirstOrDefault();
+
+            if (item == null) return HttpNotFound();
+
+            return View(item);
+        }
+
+        // ---------------------------
+        // OPTIONAL: AJAX helper for Rooms + AdminEmail by PG
+        // GET: /Admin/GetRoomsByPg?pgId=123
+        // ---------------------------
+        [HttpGet]
+        public JsonResult GetRoomsByPg(int pgId)
+        {
+            var rooms = _db.Rooms
+                .Where(r => r.PGID == pgId)
+                .OrderBy(r => r.RoomId)
+                .Select(r => new { value = r.RoomId, text = r.SharingType })
+                .ToList();
+
+            // If your PG table has AdminEmail, prefill it
+            var adminEmail = _db.PGs
+                .Where(p => p.PGID == pgId)
+                .Select(p => p.AdminEmail)        // <-- add AdminEmail column to PG model/table if needed
+                .FirstOrDefault();
+
+            return Json(new { rooms, adminEmail = "" }, JsonRequestBehavior.AllowGet);
+        }
+    }
+}
+
+
+        
+
