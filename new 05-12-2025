@@ -1,0 +1,377 @@
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.IO;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using System.Data.Entity;
+using StayEase.Models;
+using StayEase.Models.ViewModels;
+
+namespace StayEase.Controllers
+{
+    public class AdminController : Controller
+    {
+        // SINGLE shared EF context for this controller
+        private readonly ApplicationDbContext _db = new ApplicationDbContext();
+
+        // SESSION ROLE CHECK
+        private bool IsAdmin()
+        {
+            var role = Convert.ToString(Session["UserRole"]);
+            return string.Equals(role?.Trim(), "Admin", StringComparison.OrdinalIgnoreCase);
+        }
+
+        // ---------------- DASHBOARD ----------------------
+        public ActionResult Dashboard()
+        {
+            if (!IsAdmin()) return RedirectToAction("Login", "Account");
+            return View();
+        }
+
+        public ActionResult Logout()
+        {
+            Session.Clear();
+            return RedirectToAction("Login", "Account");
+        }
+
+        // ---------------- PG LIST (EF) ----------------------
+        public ActionResult PGList()
+        {
+            // Use EF to get PGs
+            var pgList = _db.PGs.OrderByDescending(p => p.PGID).ToList();
+            return View(pgList);
+        }
+
+        // ---------------- ADD PG (GET) ----------------------
+        public ActionResult AddPG()
+        {
+            ViewBag.Cities = GetCities();
+            return View();
+        }
+
+        // ---------------- ADD PG (POST) ----------------------
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult AddPG(PG model, HttpPostedFileBase ImageFile)
+        {
+            try
+            {
+                string imgPath = model.ImagePath ?? "";
+
+                // handle image upload
+                if (ImageFile != null && ImageFile.ContentLength > 0)
+                {
+                    string folder = Server.MapPath("~/PGImages/");
+                    if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+                    string fileName = Guid.NewGuid().ToString("N") + Path.GetExtension(ImageFile.FileName);
+                    string fullPath = Path.Combine(folder, fileName);
+                    ImageFile.SaveAs(fullPath);
+                    imgPath = "/PGImages/" + fileName;
+                }
+
+                model.ImagePath = imgPath;
+                model.CreatedDate = DateTime.Now;
+
+                _db.PGs.Add(model);
+                _db.SaveChanges();
+
+                return RedirectToAction("PGList");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = ex.Message;
+                ViewBag.Cities = GetCities();
+                return View(model);
+            }
+        }
+
+        // ---------------- EDIT PG (GET) ----------------------
+        public ActionResult EditPG(int id)
+        {
+            var pg = _db.PGs.Find(id);
+            if (pg == null) return HttpNotFound();
+            ViewBag.Cities = GetCities();
+            return View(pg);
+        }
+
+        // ---------------- EDIT PG (POST) ----------------------
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult EditPG(PG model, HttpPostedFileBase ImageFile)
+        {
+            try
+            {
+                var existing = _db.PGs.Find(model.PGID);
+                if (existing == null) return HttpNotFound();
+
+                // handle new image if uploaded
+                if (ImageFile != null && ImageFile.ContentLength > 0)
+                {
+                    string folder = Server.MapPath("~/PGImages/");
+                    if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+                    string fileName = Guid.NewGuid().ToString("N") + Path.GetExtension(ImageFile.FileName);
+                    string fullPath = Path.Combine(folder, fileName);
+                    ImageFile.SaveAs(fullPath);
+                    existing.ImagePath = "/PGImages/" + fileName;
+                }
+
+                // update scalar fields
+                existing.PGName = model.PGName;
+                existing.City = model.City;
+                existing.Location = model.Location;
+                existing.PGType = model.PGType;
+                existing.Rent = model.Rent;
+                existing.Facilities = model.Facilities;
+                existing.FoodMenu = model.FoodMenu;
+                existing.Contact = model.Contact;
+                existing.CityId = model.CityId;
+
+                _db.SaveChanges();
+                return RedirectToAction("PGList");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = ex.Message;
+                ViewBag.Cities = GetCities();
+                return View(model);
+            }
+        }
+
+        // ---------------- DELETE PG ----------------------
+        public ActionResult DeletePG(int id)
+        {
+            var pg = _db.PGs.Find(id);
+            if (pg != null)
+            {
+                // optional: remove related rooms/images first (if FK blocks)
+                var rooms = _db.Rooms.Where(r => r.PGId == id).ToList();
+                foreach (var r in rooms) _db.Rooms.Remove(r);
+
+                var roomImages = _db.RoomImageFiles.Where(x => x.PGID == id).ToList();
+                foreach (var img in roomImages)
+                {
+                    // delete file from disk if exists
+                    try
+                    {
+                        var file = Server.MapPath("~/images/rooms/" + img.FileName);
+                        if (System.IO.File.Exists(file)) System.IO.File.Delete(file);
+                    }
+                    catch { /* ignore disk deletion errors */ }
+
+                    _db.RoomImageFiles.Remove(img);
+                }
+
+                _db.PGs.Remove(pg);
+                _db.SaveChanges();
+            }
+            return RedirectToAction("PGList");
+        }
+
+        // ---------------- CITIES HELPER ----------------------
+        private List<City> GetCities()
+        {
+            return _db.Cities.OrderBy(c => c.CityName).ToList();
+        }
+
+        // ---------------- ROOMS MANAGEMENT ----------------------
+        public ActionResult ManageRooms()
+        {
+            // Include PG to avoid null navigation property in view
+            var list = _db.Rooms.Include(r => r.PG).ToList();
+            return View(list);
+        }
+
+        public ActionResult AddRoom()
+        {
+            ViewBag.PGList = new SelectList(_db.PGs.ToList(), "PGID", "PGName");
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult AddRoom(Room room)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.PGList = new SelectList(_db.PGs.ToList(), "PGID", "PGName", room.PGId);
+                return View(room);
+            }
+
+            _db.Rooms.Add(room);
+            _db.SaveChanges();
+            return RedirectToAction("ManageRooms");
+        }
+
+        public ActionResult EditRoom(int id)
+        {
+            var room = _db.Rooms.Find(id);
+            if (room == null) return HttpNotFound();
+            ViewBag.PGList = new SelectList(_db.PGs.ToList(), "PGID", "PGName", room.PGId);
+            return View(room);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult EditRoom(Room room)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.PGList = new SelectList(_db.PGs.ToList(), "PGID", "PGName", room.PGId);
+                return View(room);
+            }
+
+            var existing = _db.Rooms.Find(room.RoomId);
+            if (existing == null) return HttpNotFound();
+
+            // Do NOT change PGId here (preserve)
+            existing.SharingType = room.SharingType;
+            existing.TotalBeds = room.TotalBeds;
+            existing.AvailableBeds = room.AvailableBeds;
+            existing.Price = room.Price;
+
+            _db.SaveChanges();
+            return RedirectToAction("ManageRooms");
+        }
+
+        public ActionResult DeleteRoom(int id)
+        {
+            var room = _db.Rooms.Find(id);
+            if (room != null)
+            {
+                _db.Rooms.Remove(room);
+                _db.SaveChanges();
+            }
+            return RedirectToAction("ManageRooms");
+        }
+
+        // ---------------------------
+        // Manage Room Image (GET)
+        // ---------------------------
+        [HttpGet]
+        public ActionResult ManageRoomImage()
+        {
+            var vm = new RoomImageFormViewModel
+            {
+                PGList = _db.PGs
+                    .OrderBy(p => p.PGName)
+                    .Select(p => new SelectListItem { Value = p.PGID.ToString(), Text = p.PGName })
+                    .ToList(),
+                RoomList = Enumerable.Empty<SelectListItem>()
+            };
+
+            return View(vm);
+        }
+
+        // ---------------------------
+        // Manage Room Image (POST)
+        // ---------------------------
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ManageRoomImage(RoomImageFormViewModel model)
+        {
+            // Rebuild dropdowns (for validation redisplay)
+            model.PGList = _db.PGs
+                .OrderBy(p => p.PGName)
+                .Select(p => new SelectListItem { Value = p.PGID.ToString(), Text = p.PGName })
+                .ToList();
+
+            model.RoomList = _db.Rooms
+                .Where(r => r.PGId == model.PGID)
+                .OrderBy(r => r.RoomId)
+                .Select(r => new SelectListItem { Value = r.RoomId.ToString(), Text = r.SharingType })
+                .ToList();
+
+            // Validate
+            if (model.Photo == null || model.Photo.ContentLength == 0)
+                ModelState.AddModelError("Photo", "Please choose an image.");
+
+            var allowed = new[] { "image/jpeg", "image/png", "image/webp" };
+            const int maxBytes = 10 * 1024 * 1024;
+            if (model.Photo != null && !allowed.Contains(model.Photo.ContentType))
+                ModelState.AddModelError("Photo", "Only JPEG/PNG/WebP allowed.");
+            if (model.Photo != null && model.Photo.ContentLength > maxBytes)
+                ModelState.AddModelError("Photo", "Max 10 MB.");
+
+            if (!ModelState.IsValid) return View(model);
+
+            // Save file to ~/images/rooms
+            var uploadsDir = Server.MapPath("~/images/rooms");
+            if (!Directory.Exists(uploadsDir)) Directory.CreateDirectory(uploadsDir);
+
+            var ext = Path.GetExtension(model.Photo.FileName)?.ToLowerInvariant();
+            var uniqueName = $"{Guid.NewGuid():N}{ext}";
+            var filePath = Path.Combine(uploadsDir, uniqueName);
+            model.Photo.SaveAs(filePath);
+
+            // Save metadata in DB
+            var row = new RoomImageFile
+            {
+                PGID = model.PGID,
+                RoomId = model.RoomId,
+                AdminEmail = model.AdminEmail,
+                RoomType = model.RoomType,  // "Single" | "Double" | "Triple"
+                FileName = uniqueName,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _db.RoomImageFiles.Add(row);
+            _db.SaveChanges();
+
+            TempData["Msg"] = "✅ Room image saved.";
+            return RedirectToAction("ViewRoomImage", new { id = row.ImageId });
+        }
+
+        // ---------------------------
+        // View Room Image (GET)
+        // ---------------------------
+        [HttpGet]
+        public ActionResult ViewRoomImage(int id)
+        {
+            var item = (from i in _db.RoomImageFiles
+                        join p in _db.PGs on i.PGID equals p.PGID into pgJoin
+                        from p in pgJoin.DefaultIfEmpty()
+                        where i.ImageId == id
+                        select new
+                        {
+                            i.ImageId,
+                            i.PGID,
+                            i.RoomId,
+                            i.AdminEmail,
+                            i.RoomType,
+                            i.FileName,
+                            PGName = p != null ? p.PGName : ""
+                        }).FirstOrDefault();
+
+            if (item == null) return HttpNotFound();
+            return View(item);
+        }
+
+        // ---------------------------
+        // AJAX helper for Rooms + AdminEmail by PG
+        // GET: /Admin/GetRoomsByPg?pgId=123
+        // ---------------------------
+        [HttpGet]
+        public JsonResult GetRoomsByPg(int pgId)
+        {
+            var rooms = _db.Rooms
+                .Where(r => r.PGId == pgId)
+                .OrderBy(r => r.RoomId)
+                .Select(r => new { value = r.RoomId, text = r.SharingType })
+                .ToList();
+
+            // By default we return empty adminEmail. If you add AdminEmail to PG table/model, change this.
+            var adminEmail = _db.PGs.Where(p => p.PGID == pgId).Select(p => p.ImagePath /* placeholder */).FirstOrDefault();
+            // we will not return that value to JS; return empty string to keep safe:
+            return Json(new { rooms, adminEmail = "" }, JsonRequestBehavior.AllowGet);
+        }
+
+        // Properly dispose EF context
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) _db.Dispose();
+            base.Dispose(disposing);
+        }
+    }
+}
