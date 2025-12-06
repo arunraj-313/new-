@@ -1,88 +1,399 @@
-/* ===== HERO BACKGROUND ===== */
-.hero-section {
-    background: url('/Content/Images/pg_banner.jpg') center/cover no-repeat;
-    height: 100vh;
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    color: white;
+@{
+    ViewBag.Title = "Home Page";
 }
 
-/* Dark overlay */
-.hero-section::before {
-    content: "";
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.35);
-}
+<style>
+    body {
+        background: linear-gradient(135deg, #0e1628, #08101f, #050910);
+        color: white;
+    }
 
-/* Text */
-.hero-content {
-    position: relative;
-    z-index: 2;
-}
+    /* ================= HERO ================= */
+    .hero {
+        text-align: center;
+        padding: 90px 20px;
+    }
 
-.hotel-subtitle {
-    font-size: 18px;
-    letter-spacing: 3px;
-    opacity: 0.9;
-}
+        .hero h1 {
+            font-size: 48px;
+            font-weight: 700;
+            color: #f5d26a;
+            margin-bottom: 12px;
+        }
 
-.hero-title {
-    font-size: 70px;
-    font-weight: 700;
-    margin-top: 10px;
-}
+        .hero p {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+    /* SEARCH BOX */
+    .search-box {
+        display: flex;
+        justify-content: center;
+    }
 
-.hero-tagline {
-    font-size: 22px;
-    margin-top: 10px;
-    opacity: 0.9;
-}
+        .search-box input,
+        .search-box select {
+            padding: 12px;
+            border: none;
+            outline: none;
+            width: 220px;
+            background: #ffffff15;
+            color: white;
+        }
 
-/* Buttons (like sample image) */
-.btn-hero {
-    background-color: #f4b265;
-    color: #fff;
-    padding: 12px 30px;
-    border-radius: 5px;
-    margin-top: 25px;
-    display: inline-block;
-    font-weight: bold;
-    transition: 0.3s;
-}
+            .search-box select option {
+                background: black;
+            }
 
-.btn-hero:hover {
-    background-color: #e39a41;
-    transform: scale(1.05);
-}
+        .search-box input {
+            border-radius: 8px 0 0 8px;
+        }
 
-/* ===== SEARCH BAR ===== */
-.search-bar {
-    position: absolute;
-    bottom: -45px;
-    left: 0; right: 0;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 20px rgba(0,0,0,0.2);
-    z-index: 5;
-}
+    .search-btn {
+        padding: 12px 20px;
+        background: #f5d26a;
+        border: none;
+        border-radius: 0 8px 8px 0;
+        font-weight: 600;
+        color: black;
+    }
 
-.btn-search {
-    width: 100%;
-    background-color: #f4b265;
-    border: none;
-    padding: 10px;
-    color: white;
-    font-weight: bold;
-    border-radius: 5px;
-    transition: 0.3s;
-}
 
-.btn-search:hover {
-    background-color: #e39a41;
-}
+
+
+    /* ================= OFFERS STRIP ================= */
+    .offers-strip {
+        display: flex;
+        justify-content: center;
+        margin: 40px auto;
+    }
+
+    .offer-card {
+        background: #ffffff12;
+        padding: 12px 26px;
+        border-radius: 10px;
+        margin: 0 10px;
+        border: 1px solid #ffffff25;
+        color: #f5d26a;
+    }
+    /* ================= QUICK FILTERS ================= */
+    .quick-filters {
+        text-align: center;
+        padding: 40px 0;
+    }
+
+        .quick-filters h2 {
+            font-size: 32px;
+            margin-bottom: 20px;
+            color: #f5d26a;
+        }
+
+    .filter-row {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        background: #ffffff10;
+        border: 1px solid #ffffff30;
+        color: white;
+        padding: 10px 18px;
+        margin: 8px;
+        border-radius: 8px;
+        font-size: 15px;
+    }
+
+        .filter-btn:hover {
+            background: #f5d26a;
+            color: black;
+        }
+    /* CITY SECTION */
+    .city-section {
+        padding: 50px 40px;
+    }
+
+        .city-section h2 {
+            text-align: center;
+            color: #f5d26a;
+            font-size: 32px;
+            margin-bottom: 30px;
+        }
+    /* CITY ROW */
+    .city-row {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 35px;
+    }
+    /* CITY CARD */
+    .city-card {
+        width: 200px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 16px;
+        padding: 18px 10px;
+        margin-right: 25px;
+        text-align: center;
+        cursor: pointer;
+        border: 1px solid rgba(255,255,255,0.09);
+        box-shadow: 0 0 12px rgba(255,255,255,0.05);
+        transition: transform .2s, box-shadow .2s, border-color .2s;
+    }
+        /* HOVER GLOW (NO KEYFRAMES USED) */
+        .city-card:hover {
+            transform: translateY(-8px);
+            border-color: #f5d26a;
+            box-shadow: 0 0 18px #f5d26a55;
+        }
+    /* CITY IMAGE */
+    .city-img {
+        width: 100%;
+        height: 110px;
+        object-fit: contain;
+        margin-bottom: 12px;
+    }
+    /* CITY NAME */
+    .city-name {
+        font-size: 18px;
+        font-weight: 600;
+        color: #ffffff;
+    }
+
+    .active-city {
+        border-color: #f5d26a;
+        box-shadow: 0 0 20px #f5d26a88;
+    }
+    /* CITIES */
+    .cities-section {
+        padding: 40px;
+    }
+
+        .cities-section h2 {
+            text-align: center;
+            font-size: 34px;
+            margin-bottom: 30px;
+            color: #f5d26a;
+        }
+
+    .city-row {
+        display: flex;
+        justify-content: center;
+    }
+
+    .city-card {
+        background: rgba(255,255,255,0.05);
+        padding: 15px;
+        border-radius: 14px;
+        width: 220px;
+        margin-right: 25px;
+        text-align: center;
+    }
+
+        .city-card img {
+            width: 100%;
+            height: 130px;
+            border-radius: 12px;
+            object-fit: cover;
+            margin-bottom: 10px;
+        }
+
+        .city-card h3 {
+            margin-bottom: 4px;
+        }
+
+        .city-card button {
+            margin-top: 10px;
+            background: #f5d26a;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+    /* ================= FEATURED ================= */
+    .featured {
+        padding: 60px 0;
+    }
+
+        .featured h2 {
+            text-align: center;
+            font-size: 34px;
+            color: #f5d26a;
+            margin-bottom: 25px;
+        }
+
+    .featured-row {
+        display: flex;
+        justify-content: center;
+    }
+
+    .featured-card {
+        width: 260px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 14px;
+        padding: 15px;
+        margin: 0 20px;
+        text-align: center;
+    }
+
+        .featured-card img {
+            width: 100%;
+            height: 160px;
+            border-radius: 12px;
+            object-fit: cover;
+            margin-bottom: 10px;
+        }
+
+        .featured-card button {
+            padding: 10px;
+            margin-top: 12px;
+            width: 100%;
+            background: #f5d26a;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            color: black;
+        }
+    /* ================= BENEFITS ================= */
+
+    .features {
+        padding: 40px;
+    }
+
+        .features h2 {
+            text-align: center;
+            font-size: 34px;
+            margin-bottom: 30px;
+            color: #f5d26a;
+        }
+
+    .feature-row {
+        display: flex;
+        justify-content: center;
+    }
+
+    .feature-box {
+        width: 250px;
+        background: rgba(255,255,255,0.05);
+        margin-right: 25px;
+        padding: 20px;
+        text-align: center;
+        border-radius: 12px;
+    }
+
+    .icon {
+        font-size: 40px;
+        margin-bottom: 10px;
+    }
+</style>
+
+
+<!-- ================= HERO SECTION ================= -->
+<section class="hero">
+    <h1>Find Your Perfect PG</h1>
+    <p>Discover boys, girls & co-living PGs in top cities with transparent pricing.</p>
+
+</section>
+<!-- ================= OFFERS STRIP ================= -->
+</section>
+<!-- ================= QUICK FILTERS ================= -->
+<!-- CITY SECTION -->
+<!-- ================= FEATURED LISTINGS ================= -->
+<!-- ================= BENEFITS ================= -->
+<section class="features">
+    <h2>Why Choose EasyStay</h2>
+    <div class="feature-row">
+        <div class="feature-box">
+            <div class="icon">🏠</div>
+            <h4>Verified Stays</h4>
+            <p>Every property is checked to ensure safety & comfort.</p>
+        </div>
+        <div class="feature-box">
+            <div class="icon">💳</div>
+            <h4>Secure Payments</h4>
+            <p>End-to-end encrypted transactions.</p>
+        </div>
+        <div class="feature-box">
+            <div class="icon">⭐</div>
+            <h4>Premium Service</h4>
+            <p>24×7 support with customer-first service.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features">
+    <div class="container">
+        <h2>Our Features</h2>
+        <div class="row">
+            <div class="col-md-4 feature-card">
+                <h4>User Friendly</h4>
+                <p>Easy registration, booking, and payment system.</p>
+            </div>
+            <div class="col-md-4 feature-card">
+                <h4>PG Categories</h4>
+                <p>Girls PG, Boys PG, and Co-Living for better filtering.</p>
+            </div>
+            <div class="col-md-4 feature-card">
+                <h4>Food Menu</h4>
+                <p>View and update breakfast, lunch, and dinner menus.</p>
+            </div>
+            <div class="col-md-4 feature-card mt-4">
+                <h4>Notifications</h4>
+                <p>Booking confirmations, reminders, and alerts.</p>
+            </div>
+            <div class="col-md-4 feature-card mt-4">
+                <h4>Secure Payments</h4>
+                <p>Online payment integration for hassle-free transactions.</p>
+            </div>
+            <div class="col-md-4 feature-card mt-4">
+                <h4>Feedback System</h4>
+                <p>Submit suggestions for cleaning, food, and maintenance.</p>
+            </div>
+        </div>
+    </div>
+</section>
+<script>
+    function selectCity(card) {
+        // Remove active state from other cards
+        document.querySelectorAll('.city-card').forEach(c => {
+            c.classList.remove('active');
+        });
+        card.classList.add('active');
+        let img = card.querySelector(".city-img");
+        let realUrl = img.getAttribute("data-real");
+        // Replace svg with real image on click
+        img.src = realUrl;
+    }
+
+    function goToCity(pageName) {
+        window.location.href = pageName;
+    }
+
+
+    function animatedScroll(amount) {
+        document.getElementById("animatedCarousel")
+            .scrollBy({ left: amount, behavior: "smooth" });
+    }
+
+    // Minimal utilities: navigation and setting footer year + accessibility
+    function goToCity(pagePath, pageTitle) {
+        try {
+            // store title so target page can show it
+            sessionStorage.setItem('easyStay_pageTitle', pageTitle || '');
+            window.location.href = pagePath;
+        } catch (e) {
+            window.location.href = pagePath;
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+</script>
