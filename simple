@@ -1,10 +1,19 @@
+using StayEasePG.Models;
+using System;
+using System.Configuration;
+using System.Data;
+using System.Data.SqlClient;
+using System.Web.Mvc;
+
 namespace StayEasePG.Controllers
 {
     public class AccountController : Controller
     {
         string connString = ConfigurationManager.ConnectionStrings["StayEasePGConn"].ConnectionString;
 
-        // ===================== LOGIN ======================
+        // ============================================================
+        //                           LOGIN
+        // ============================================================
         [HttpGet]
         public ActionResult Login()
         {
@@ -21,7 +30,7 @@ namespace StayEasePG.Controllers
                 {
                     con.Open();
 
-                    // ---- CHECK ADMIN ----
+                    // ========== CHECK ADMIN ==========
                     string adminQuery = @"SELECT AdminID AS ID, FullName, 'Admin' AS Role 
                                          FROM Admins 
                                          WHERE Email=@Email AND PasswordHash=@Password";
@@ -32,6 +41,7 @@ namespace StayEasePG.Controllers
                         adminCmd.Parameters.AddWithValue("@Password", password);
 
                         var dr = adminCmd.ExecuteReader();
+
                         if (dr.Read())
                         {
                             Session["UserID"] = dr["ID"].ToString();
@@ -45,10 +55,10 @@ namespace StayEasePG.Controllers
                         dr.Close();
                     }
 
-                    // ---- CHECK USER ----
+                    // ========== CHECK USER ==========
                     string userQuery = @"SELECT UserID AS ID, FullName, 'User' AS Role 
-                                         FROM Users 
-                                         WHERE Email=@Email AND PasswordHash=@Password";
+                                        FROM Users 
+                                        WHERE Email=@Email AND PasswordHash=@Password";
 
                     using (SqlCommand userCmd = new SqlCommand(userQuery, con))
                     {
@@ -56,6 +66,7 @@ namespace StayEasePG.Controllers
                         userCmd.Parameters.AddWithValue("@Password", password);
 
                         var dr = userCmd.ExecuteReader();
+
                         if (dr.Read())
                         {
                             Session["UserID"] = dr["ID"].ToString();
@@ -78,7 +89,9 @@ namespace StayEasePG.Controllers
             }
         }
 
-        // ===================== REGISTER (POPUP AJAX) ======================
+        // ============================================================
+        //                  REGISTER  (POPUP – AJAX)
+        // ============================================================
         [HttpPost]
         public ActionResult Register(UserModel user)
         {
@@ -93,25 +106,26 @@ namespace StayEasePG.Controllers
                 {
                     con.Open();
 
-                    // Check for duplicate email
+                    // ---- Check Duplicate Email ----
                     string checkQuery = "SELECT COUNT(*) FROM Users WHERE Email=@Email";
 
                     using (SqlCommand checkCmd = new SqlCommand(checkQuery, con))
                     {
                         checkCmd.Parameters.AddWithValue("@Email", user.Email);
-                        int count = (int)checkCmd.ExecuteScalar();
 
+                        int count = Convert.ToInt32(checkCmd.ExecuteScalar());
                         if (count > 0)
                         {
                             return Json(new { success = false, message = "Email already exists!" });
                         }
                     }
 
-                    // Insert new user
-                    string insertQuery = @"INSERT INTO Users
-                       (FullName, Email, Gender, PhoneNo, Address, IDProofType, IDProofNumber, Occupation, PasswordHash, Role)
-                       VALUES 
-                       (@FullName, @Email, @Gender, @PhoneNo, @Address, @IDProofType, @IDProofNumber, @Occupation, @PasswordHash, 'User')";
+                    // ---- Insert User ----
+                    string insertQuery = @"
+                        INSERT INTO Users
+                        (FullName, Email, Gender, PhoneNo, Address, IDProofType, IDProofNumber, Occupation, PasswordHash, Role)
+                        VALUES
+                        (@FullName, @Email, @Gender, @PhoneNo, @Address, @IDProofType, @IDProofNumber, @Occupation, @PasswordHash, 'User')";
 
                     using (SqlCommand cmd = new SqlCommand(insertQuery, con))
                     {
@@ -137,7 +151,9 @@ namespace StayEasePG.Controllers
             }
         }
 
-        // ===================== LOGOUT ======================
+        // ============================================================
+        //                           LOGOUT
+        // ============================================================
         public ActionResult Logout()
         {
             Session.Clear();
@@ -146,7 +162,9 @@ namespace StayEasePG.Controllers
             return RedirectToAction("Login");
         }
 
-        // ===================== FORGOT PASSWORD ======================
+        // ============================================================
+        //                     FORGOT PASSWORD
+        // ============================================================
         [HttpGet]
         public ActionResult ForgotPassword()
         {
@@ -190,8 +208,6 @@ namespace StayEasePG.Controllers
                 TempData["error"] = "Error updating password: " + ex.Message;
                 return View();
             }
-
-
         }
     }
 }
