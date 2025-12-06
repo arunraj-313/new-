@@ -1,246 +1,68 @@
-using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data.SqlClient;
-using System.Web.Mvc;
-using PG_Management.Models;
+Absolutely, Arunraj — let’s do this step by step with exact file names, what to paste, and where. By the end, clicking Logout in your Admin dashboard will clear the session and redirect to the Login page.
 
-namespace PG.Controllers   // or your global namespace "StayEasy"
-{
-    public class AdminController : Controller
-    {
-        private readonly string connString = ConfigurationManager.ConnectionStrings["EasyPG"].ConnectionString;
+Overview of the changes
+You’ll update or add four things:
 
-        // ===================== DASHBOARD ======================
-        public ActionResult AdminDashboard()
-        {
-            if (Session["Role"] == null || Session["Role"].ToString() != "Admin")
-            {
-                TempData["error"] = "Access Denied!";
-                return RedirectToAction("Login", "Account");
-            }
-
-            int adminId = Convert.ToInt32(Session["UserID"]); // ← using only UserID
-
-            int totalPGs = 0, totalUsers = 0;
-
-            try
-            {
-                using (SqlConnection con = new SqlConnection(connString))
-                {
-                    con.Open();
-
-                    // Count PGs created by this admin
-                    using (SqlCommand cmdPG = new SqlCommand(
-                        "SELECT COUNT(*) FROM PGListings WHERE AdminID=@AdminID", con))
-                    {
-                        cmdPG.Parameters.AddWithValue("@AdminID", adminId);
-                        totalPGs = (int)cmdPG.ExecuteScalar();
-                    }
-
-                    // Count users staying in admin’s PGs
-                    using (SqlCommand cmdUsers = new SqlCommand(@"
-                        SELECT COUNT(*) FROM Users 
-                        WHERE PGID IN (SELECT PGID FROM PGListings WHERE AdminID=@AdminID)", con))
-                    {
-                        cmdUsers.Parameters.AddWithValue("@AdminID", adminId);
-                        totalUsers = (int)cmdUsers.ExecuteScalar();
-                    }
-                }
-
-                ViewBag.TotalPGs = totalPGs;
-                ViewBag.TotalUsers = totalUsers;
-            }
-            catch (Exception ex)
-            {
-                TempData["error"] = "Error loading dashboard: " + ex.Message;
-            }
-
-            return View();
-        }
-
-        // ===================== MANAGE USERS ======================
-        public ActionResult ManageUsers()
-        {
-            if (Session["Role"] == null || Session["Role"].ToString() != "Admin")
-            {
-                TempData["error"] = "Access Denied!";
-                return RedirectToAction("Login", "Account");
-            }
-
-            int adminId = Convert.ToInt32(Session["UserID"]);
-            List<UserModel> users = new List<UserModel>();
-
-            try
-            {
-                using (SqlConnection con = new SqlConnection(connString))
-                {
-                    string query = @"
-                    SELECT u.UserID, u.FullName, u.Email, u.Gender, u.PhoneNo, p.PGName
-                    FROM Users u
-                    INNER JOIN PGListings p ON u.PGID = p.PGID
-                    WHERE p.AdminID = @AdminID";
-
-                    SqlCommand cmd = new SqlCommand(query, con);
-                    cmd.Parameters.AddWithValue("@AdminID", adminId);
-                    con.Open();
-
-                    SqlDataReader dr = cmd.ExecuteReader();
-                    while (dr.Read())
-                    {
-                        users.Add(new UserModel
-                        {
-                            UserID = Convert.ToInt32(dr["UserID"]),
-                            FullName = dr["FullName"].ToString(),
-                            Email = dr["Email"].ToString(),
-                            Gender = dr["Gender"].ToString(),
-                            PhoneNo = dr["PhoneNo"].ToString(),
-                            Address = dr["PGName"].ToString()  // showing PG name
-                        });
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                TempData["error"] = "Error loading users: " + ex.Message;
-            }
-
-            return View(users);
-        }
+AccountController.cs — add Login (POST) and Logout (GET).
+_AdminLayout.cshtml — put a Logout button in the top bar (right side).
+AdminController.cs — protect the Dashboard using a simple admin check so logged‑out users are redirected to Login.
+Views/Account/Login.cshtml — add @Html.AntiForgeryToken() (since we use [ValidateAntiForgeryToken]) and keep success/error messages.
 
 
-        // ===================== USERS DETAILS PAGE ======================
-        public ActionResult UsersDetails()
-        {
-            if (Session["Role"] == null || Session["Role"].ToString() != "Admin")
-            {
-                TempData["error"] = "Access Denied!";
-                return RedirectToAction("Login", "Account");
-            }
+1) Create/Update AccountController.cs
+File path: Controllers/AccountController.cs
+What to do: Replace or create this controller file with the following code.
+It uses Session to store login state and a simple check for admin/user. You can change the dummy credentials later to your real DB logic.
+C#using System;using System.Web;using System.Web.Mvc;namespace StayEasePG.Controllers{    public class AccountController : Controller    {        // GET: /Account/Login        [HttpGet]        public ActionResult Login()        {            return View();        }        // POST: /Account/Login        [HttpPost]        [ValidateAntiForgeryToken]        public ActionResult Login(string email, string password)        {            // TODO: Replace with your real authentication.            bool isAdmin = string.Equals(email, "admin@stayease.com", StringComparison.OrdinalIgnoreCase)                           && password == "Admin@123";            bool isUser = string.Equals(email, "user@stayease.com", StringComparison.OrdinalIgnoreCase)                          && password == "User@123";            if (isAdmin || isUser)            {                Session["IsAuthenticated"] = true;                Session["FullName"] = isAdmin ? "Admin" : "StayEase User";                Session["Role"] = isAdmin ? "Admin" : "User";                TempData["success"] = "Login successful.";                // Redirect based on role                if (isAdmin)                    return RedirectToAction("Dashboard", "Admin");                else                    return RedirectToAction("Index", "Home");            }            TempData["error"] = "Invalid credentials.";            return View();        }        // GET: /Account/Logout        [HttpGet]        public ActionResult Logout()        {            // Clear the session (logs the user out)            Session.Clear();            Session.Abandon();            // Optional: clear auth cookie if any exists            if (Request.Cookies[".ASPXAUTH"] != null)            {                var cookie = new HttpCookie(".ASPXAUTH")                {                    Expires = DateTime.Now.AddDays(-1)                };                Response.Cookies.Add(cookie);            }            TempData["success"] = "You have been logged out.";            return RedirectToAction("Login", "Account");        }    }    /// <summary>    /// Simple filter to restrict actions to Admin role kept in Session.    /// Redirects to /Account/Login if not authorized.    /// </summary>    public class AuthorizeAdminAttribute : ActionFilterAttribute    {        public override void OnActionExecuting(ActionExecutingContext filterContext)        {            var session = filterContext.HttpContext.Session;            var isAuth = session != null && session["IsAuthenticated"] as bool? == true;            var role = session != null ? session["Role"] as string : null;            if (!isAuth || !string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase))            {                filterContext.Result = new RedirectResult("~/Account/Login");                return;            }            base.OnActionExecuting(filterContext);        }    }Show lessCode block expanded
 
-            int adminId = Convert.ToInt32(Session["UserID"]);
-            List<UserModel> users = new List<UserModel>();
-
-            using (SqlConnection con = new SqlConnection(connString))
-            {
-                string query = @"
-                SELECT u.UserID, u.FullName, u.Email, u.PhoneNo, u.Gender,
-                       p.PGName, p.Location, p.Rent
-                FROM Users u
-                INNER JOIN PGListings p ON u.PGID = p.PGID
-                WHERE p.AdminID = @AdminID";
-
-                SqlCommand cmd = new SqlCommand(query, con);
-                cmd.Parameters.AddWithValue("@AdminID", adminId);
-                con.Open();
-
-                SqlDataReader dr = cmd.ExecuteReader();
-                while (dr.Read())
-                {
-                    users.Add(new UserModel
-                    {
-                        UserID = Convert.ToInt32(dr["UserID"]),
-                        FullName = dr["FullName"].ToString(),
-                        Email = dr["Email"].ToString(),
-                        PhoneNo = dr["PhoneNo"].ToString(),
-                        Gender = dr["Gender"].ToString(),
-                        Address = $"{dr["PGName"]} - {dr["Location"]}",
-                        Occupation = "Rent: ₹" + dr["Rent"].ToString()
-                    });
-                }
-            }
-
-            return View(users);
-        }
-
-        // ===================== EDIT USER ======================
-        [HttpGet]
-        public ActionResult EditUser(int id)
-        {
-            if (Session["Role"] == null || Session["Role"].ToString() != "Admin")
-            {
-                TempData["error"] = "Access Denied!";
-                return RedirectToAction("Login", "Account");
-            }
-
-            UserModel user = null;
-
-            using (SqlConnection con = new SqlConnection(connString))
-            {
-                string query = "SELECT UserID, FullName, Email, PhoneNo, Gender FROM Users WHERE UserID=@UserID";
-                SqlCommand cmd = new SqlCommand(query, con);
-                cmd.Parameters.AddWithValue("@UserID", id);
-                con.Open();
-
-                SqlDataReader dr = cmd.ExecuteReader();
-                if (dr.Read())
-                {
-                    user = new UserModel
-                    {
-                        UserID = Convert.ToInt32(dr["UserID"]),
-                        FullName = dr["FullName"].ToString(),
-                        Email = dr["Email"].ToString(),
-                        PhoneNo = dr["PhoneNo"].ToString(),
-                        Gender = dr["Gender"].ToString()
-                    };
-                }
-            }
-
-            return View(user);
-        }
-
-        // POST Update User
-        [HttpPost]
-        public ActionResult EditUser(UserModel model)
-        {
-            using (SqlConnection con = new SqlConnection(connString))
-            {
-                string query = @"UPDATE Users SET FullName=@FullName, Email=@Email,
-                                 PhoneNo=@PhoneNo, Gender=@Gender WHERE UserID=@UserID";
-
-                SqlCommand cmd = new SqlCommand(query, con);
-                cmd.Parameters.AddWithValue("@FullName", model.FullName);
-                cmd.Parameters.AddWithValue("@Email", model.Email);
-                cmd.Parameters.AddWithValue("@PhoneNo", model.PhoneNo);
-                cmd.Parameters.AddWithValue("@Gender", model.Gender);
-                cmd.Parameters.AddWithValue("@UserID", model.UserID);
-
-                con.Open();
-                cmd.ExecuteNonQuery();
-            }
-
-            TempData["success"] = "User updated successfully!";
-            return RedirectToAction("UsersDetails");
-        }
+Why: Logout clears session and redirects to Login; AuthorizeAdmin protects admin pages so that after logout, trying to open Dashboard sends you back to Login.
 
 
-        // ===================== DELETE USER ======================
-        public ActionResult DeleteUser(int id)
-        {
-            if (Session["Role"] == null || Session["Role"].ToString() != "Admin")
-            {
-                TempData["error"] = "Access Denied!";
-                return RedirectToAction("Login", "Account");
-            }
+2) Add a Logout button in _AdminLayout.cshtml
+File path: Views/Shared/_AdminLayout.cshtml
+What to do: Add a top bar with Logout on the right. If you already have an admin layout, just insert the actions div with the Logout link.
+Option A — Full layout (if you want to use this structure):
+Plain Textcshtml isn’t fully supported. Syntax highlighting is based on Plain Text.@{    Layout = null; // This is an admin layout    var fullName = Session["FullName"] as string ?? "Admin";}<!DOCTYPE html><html><head>    <meta charset="utf-8" />    <title>@ViewBag.Title - Stay Ease Admin</title>    <meta name="viewport" content="width=device-width, initial-scale=1" />    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.mintyle>        .admin-topbar {            background: #0b1c3f; /* royal blue tint */            color: #e0b64b;      /* gold text */            padding: 0.75rem 1rem;            display: flex;            align-items: center;            justify-content: space-between;        }        .admin-brand { font-weight: 700; letter-spacing: .4px; }        .admin-actions a { color: #e0b64b; text-decoration: none; font-weight: 600; }        .admin-actions a:hover { color: #f3d887; }        .admin-body { background: #071028; min-height: 100vh; padding: 1rem; }    </style></head><body>    <div class="admin-topbar">        <div class="admin-brand">Stay Ease Admin</div>        <div class="admin-actions d-flex align-items-center gap-3">            <span class="text-light">Welcome, @fullName</span>            <Url.Action(Logout</a>        </div>    </div>    <div class="admin-body">        <div class="container-fluid">            @RenderBody()        </div>    </div>    <ttps://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js</script>    @RenderSection("Scripts", required: false)</</body>Show more lines
+Option B — If you already have the layout and only need the Logout button:
+Find your top header area and add this:
+Plain Textcshtml isn’t fully supported. Syntax highlighting is based on Plain Text.<div class="admin-actions d-flex align-items-center gap-3">    <span class="text-light">Welcome, @Session["FullName"]</span>    <a href="@Url.Action("Logout","Account")"Show more lines
 
-            try
-            {
-                using (SqlConnection con = new SqlConnection(connString))
-                {
-                    SqlCommand cmd = new SqlCommand("DELETE FROM Users WHERE UserID=@UserID", con);
-                    cmd.Parameters.AddWithValue("@UserID", id);
-                    con.Open();
-                    cmd.ExecuteNonQuery();
-                }
+Why: Clicking this link goes to /Account/Logout, which clears the session and redirects to Login.
 
-                TempData["success"] = "User deleted successfully!";
-            }
-            catch (Exception ex)
-            {
-                TempData["error"] = "Error deleting user: " + ex.Message;
-            }
 
-            return RedirectToAction("ManageUsers");
-        }
-    }
-}
+3) Protect the Admin Dashboard
+File path: Controllers/AdminController.cs
+What to do: Add the AuthorizeAdmin attribute on Dashboard action.
+C#using System.Web.Mvc;using StayEasePG.Controllers; // for AuthorizeAdminAttributenamespace StayEasePG.Controllers{    public class AdminController : Controller    {        [AuthorizeAdmin]        public ActionResult Dashboard()        {            return View();        }    }}``Show more lines
+
+Why: Ensures only admins (based on Session) see the dashboard. After logout, users will be redirected to the Login page automatically when they visit /Admin/Dashboard.
+
+
+4) Make sure Login view has AntiForgery token
+File path: Views/Account/Login.cshtml
+What to do: Ensure you include @Html.AntiForgeryToken() inside the form because the controller uses [ValidateAntiForgeryToken].
+The rest of your view is already fine.
+Plain Textcshtml isn’t fully supported. Syntax highlighting is based on Plain Text.@{    ViewBag.Title = "Login";    Layout = "~/Views/Shared/_Layout.cshtml";}<h2 class="text-center mt-3">User Login</h2><div class="container mt-4">    <div class="row justify-content-center">        <div class="col-md-5">            @if (TempData["success"] != null)            {                <div class="alert alert-success">@TempData["success"]</div>            }            @if (TempData["error"] != null)            {                <div class="alert alert-danger">@TempData["error"]</div>            }            @using (Html.BeginForm("Login", "Account", FormMethod.Post))            {                @Html.AntiForgeryToken()                <div class="mb-3">                    <label class="form-label">Email or Username</label>                    @Html.TextBox("email", null, new { @class = "form-control", required = "required", placeholder = "Enter your email" })                </div>                <div class="mb-3">                    <label class="form-label">Password</label>                    @Html.Password("password", null, new { @class = "form-control", required = "required", placeholder = "Enter your password" })                </div>                <button type="submit" class="btn btn-primary w-100 mt-3">Login</button>                <div class="text-center mt-3">                    /Account/ForgotPasswordForgot Password?</a>                </div>                <div class="text-center mt-2">                    /Account/RegisterNew User? Register Here</a>                </div>            }        </div>    </div></divShow more lines
+
+5) Verify the flow
+
+Open /Account/Login, log in with:
+
+Admin (example): admin@stayease.com / Admin@123
+User (example): user@stayease.com / User@123
+
+
+If Admin → you land on /Admin/Dashboard.
+Click Logout (top‑right).
+➜ You’ll be redirected to /Account/Login with a success message: “You have been logged out.”
+Try opening /Admin/Dashboard after logout — you’re redirected to Login automatically.
+
+
+6) Common pitfalls (quick checks)
+
+If your app uses ASP.NET Identity or OWIN Cookie auth, replace the session logic with Authentication.SignOut(...). I can convert it for you if you confirm.
+Ensure your routes are default (e.g., {controller}/{action}/{id}), so /Account/Logout resolves.
+If you use bundles that already include Bootstrap, avoid loading Bootstrap CDN twice.
+
+
+If you want, share your current AccountController and _AdminLayout.cshtml, and I’ll patch them line‑by‑line. Or I can switch you to ASP.NET Identity (more secure) with SignIn/SignOut if that’s your goal.
