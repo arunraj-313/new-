@@ -284,6 +284,73 @@
         font-size: 40px;
         margin-bottom: 10px;
     }
+
+
+    /* OUR FEATURES SECTION (MATCHED STYLE) */
+
+    .features-modern {
+           padding: 60px 40px;
+    }
+
+
+
+        .features-modern h2 {
+               text-align: center;
+               font-size: 34px;
+               margin-bottom: 35px;
+               color: #f5d26a;
+        }
+
+
+
+        /* row layout */
+
+        .features-modern .row {
+               display: flex;
+               justify-content: center;
+               flex-wrap: wrap;
+        }
+
+
+
+    /* feature cards (same style as your previous feature-box) */
+
+    .feature-modern-card {
+           background: rgba(255, 255, 255, 0.06);
+           width: 260px;
+           padding: 20px;
+           margin: 12px;
+           border-radius: 14px;
+           text-align: center;
+           border: 1px solid rgba(255,255,255,0.10);
+           box-shadow: 0 0 12px rgba(255,255,255,0.04);
+           transition: transform .25s, box-shadow .25s, border-color .25s;
+    }
+
+
+
+        /* hover glow */
+
+        .feature-modern-card:hover {
+               transform: translateY(-8px);
+               border-color: #f5d26a;
+               box-shadow: 0 0 18px #f5d26a66;
+        }
+
+
+
+        .feature-modern-card h4 {
+               color: #f5d26a;
+               margin-bottom: 10px;
+               font-size: 20px;
+        }
+
+
+
+        .feature-modern-card p {
+               font-size: 15px;
+               opacity: 0.85;
+        }
 </style>
 
 
