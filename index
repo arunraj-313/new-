@@ -1,0 +1,188 @@
+@{
+    ViewBag.Title = "Home Page";
+}
+<style>
+
+    body {
+        background: linear-gradient(135deg, #0e1628, #08101f, #050910);
+        color: white;
+    }
+
+    /* ================= HERO ================= */
+    .hero {
+        text-align: center;
+        padding: 90px 20px;
+    }
+
+        .hero h1 {
+            font-size: 48px;
+            font-weight: 700;
+            color: #f5d26a;
+            margin-bottom: 12px;
+        }
+
+        .hero p {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+
+    /* ================= BENEFITS ================= */
+    .features {
+        padding: 40px;
+    }
+
+        .features h2 {
+            text-align: center;
+            font-size: 34px;
+            margin-bottom: 30px;
+            color: #f5d26a;
+        }
+
+    .feature-row {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .feature-box {
+        width: 250px;
+        background: rgba(255,255,255,0.05);
+        margin: 12px;
+        padding: 20px;
+        text-align: center;
+        border-radius: 12px;
+    }
+
+    .icon {
+        font-size: 40px;
+        margin-bottom: 10px;
+    }
+
+    /* ================= OUR FEATURES (MODERN) ================= */
+    .features-modern {
+        padding: 60px 40px;
+    }
+
+        .features-modern h2 {
+            text-align: center;
+            font-size: 34px;
+            margin-bottom: 35px;
+            color: #f5d26a;
+        }
+
+        .features-modern .row {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+    .feature-modern-card {
+        background: rgba(255, 255, 255, 0.06);
+        width: 260px;
+        padding: 20px;
+        margin: 12px;
+        border-radius: 14px;
+        text-align: center;
+        border: 1px solid rgba(255,255,255,0.10);
+        box-shadow: 0 0 12px rgba(255,255,255,0.04);
+        transition: transform .25s, box-shadow .25s, border-color .25s;
+    }
+
+        .feature-modern-card:hover {
+            transform: translateY(-8px);
+            border-color: #f5d26a;
+            box-shadow: 0 0 18px #f5d26a66;
+        }
+
+        .feature-modern-card h4 {
+            color: #f5d26a;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .feature-modern-card p {
+            font-size: 15px;
+            opacity: 0.85;
+        }
+</style>
+
+<!-- ================= HERO SECTION ================= -->
+<section class="hero">
+    <h1>Find Your Perfect PG</h1>
+    <p>Discover boys, girls & co-living PGs in top cities with transparent pricing.</p>
+</section>
+
+<section class="hero-section">
+    <div>
+        <a href="/PGDetails/Details/1" class="btn btn-gold mt-4">
+            Book PG's
+        </a>     
+    </div>
+</section>
+
+
+
+<!-- ================= BENEFITS ================= -->
+<section class="features">
+    <h2>Why Choose EasyStay</h2>
+    <div class="feature-row">
+        <div class="feature-box">
+            <div class="icon">🏠</div>
+            <h4>Verified Stays</h4>
+            <p>Every property is checked to ensure safety & comfort.</p>
+        </div>
+        <div class="feature-box">
+            <div class="icon">💳</div>
+            <h4>Secure Payments</h4>
+            <p>End-to-end encrypted transactions.</p>
+        </div>
+        <div class="feature-box">
+            <div class="icon">⭐</div>
+            <h4>Premium Service</h4>
+            <p>24×7 support with customer-first service.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ================= OUR FEATURES SECTION ================= -->
+<section class="features-modern">
+    <h2>Our Features</h2>
+    <div class="row">
+        <div class="feature-modern-card">
+            <h4>User Friendly</h4>
+            <p>Easy registration, booking, and payment system.</p>
+        </div>
+        <div class="feature-modern-card">
+            <h4>PG Categories</h4>
+            <p>Girls PG, Boys PG, and Co-Living for better filtering.</p>
+        </div>
+        <div class="feature-modern-card">
+            <h4>Food Menu</h4>
+            <p>View and update breakfast, lunch, and dinner menus.</p>
+        </div>
+        <div class="feature-modern-card">
+            <h4>Notifications</h4>
+            <p>Booking confirmations, reminders, and alerts.</p>
+        </div>
+        <div class="feature-modern-card">
+            <h4>Secure Payments</h4>
+            <p>Online payment integration for hassle-free transactions.</p>
+        </div>
+        <div class="feature-modern-card">
+            <h4>Feedback System</h4>
+            <p>Submit suggestions for cleaning, food, and maintenance.</p>
+        </div>
+    </div>
+</section>
+
+<script>
+    function goToCity(pagePath, pageTitle) {
+        try {
+            sessionStorage.setItem('easyStay_pageTitle', pageTitle || '');
+            window.location.href = pagePath;
+        } catch (e) {
+            window.location.href = pagePath;
+        }
+    }
+</script>
