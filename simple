@@ -1,55 +1,40 @@
-@model StayEasePG.Models.UserModel
-
-@using (Html.BeginForm("RegisterPopup", "Account", FormMethod.Post, new { id = "registerForm" }))
-
+[HttpPost]
+public ActionResult RegisterPopup(UserModel user)
 {
+    if (!ModelState.IsValid)
+    {
+        return PartialView("RegisterPopup", user);
+    }
 
-    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    try
+    {
+        using (SqlConnection con = new SqlConnection(connString))
+        {
+            string query = @"INSERT INTO Users 
+                            (FullName, Email, Gender, PhoneNo, Address, IDProofType, IDProofNumber, Occupation, PasswordHash, Role)
+                             VALUES
+                            (@FullName, @Email, @Gender, @PhoneNo, @Address, @IDProofType, @IDProofNumber, @Occupation, @PasswordHash, 'User')";
 
+            SqlCommand cmd = new SqlCommand(query, con);
 
+            cmd.Parameters.AddWithValue("@FullName", user.FullName);
+            cmd.Parameters.AddWithValue("@Email", user.Email);
+            cmd.Parameters.AddWithValue("@Gender", user.Gender ?? "");
+            cmd.Parameters.AddWithValue("@PhoneNo", user.PhoneNo);
+            cmd.Parameters.AddWithValue("@Address", user.Address ?? "");
+            cmd.Parameters.AddWithValue("@IDProofType", user.IDProofType ?? "");
+            cmd.Parameters.AddWithValue("@IDProofNumber", user.IDProofNumber ?? "");
+            cmd.Parameters.AddWithValue("@Occupation", user.Occupation ?? "");
+            cmd.Parameters.AddWithValue("@PasswordHash", user.Password);
 
-    <div class="mb-3">
-        <label class="form-label">Full Name</label>
-        @Html.TextBoxFor(m => m.FullName, new { @class = "form-control", required = "required" })
-    </div>
+            con.Open();
+            cmd.ExecuteNonQuery();
+        }
 
-
-
-    <div class="mb-3">
-        <label class="form-label">Email</label>
-        @Html.TextBoxFor(m => m.Email, new { @class = "form-control", type = "email", required = "required" })
-    </div>
-
-
-
-    <div class="mb-3">
-        <label class="form-label">Gender</label>
-        @Html.DropDownListFor(m => m.Gender, new SelectList(new[] { "Male", "Female", "Other" }), "Select Gender", new { @class = "form-control" })
-    </div>
-
-
-
-    <div class="mb-3">
-        <label class="form-label">Phone Number</label>
-        @Html.TextBoxFor(m => m.PhoneNo, new { @class = "form-control" })
-    </div>
-
-
-
-    <div class="mb-3">
-        <label class="form-label">Password</label>
-        @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
-    </div>
-
-
-
-    <div class="mb-3">
-        <label class="form-label">Confirm Password</label>
-        @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control" })
-    </div>
-
-
-
-    <button type="submit" class="btn btn-primary w-100">Register</button>
-
+        return Json(new { success = true, message = "Registration Successful!" });
+    }
+    catch (Exception ex)
+    {
+        return Json(new { success = false, message = "Error: " + ex.Message });
+    }
 }
