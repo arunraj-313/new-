@@ -586,3 +586,177 @@
         </div>
     </div>
 </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+register
+
+
+@model StayEasePG.Models.UserModel
+@{
+    ViewBag.Title = "Register";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .register-container {
+        max-width: 900px;
+        margin: 40px auto;
+        background: #0b1c3f;
+        padding: 30px;
+        border-radius: 18px;
+        border: 1px solid #cfa23a;
+        color: white;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #e0b64b;
+    }
+
+    .form-control {
+        background: #13254f;
+        color: white;
+        border: 1px solid #cfa23a;
+    }
+
+        .form-control:focus {
+            background: white;
+            color: black;
+            border-color: #f6d66d;
+            box-shadow: 0 0 5px #f6d66d;
+        }
+
+    .row-gap {
+        margin-bottom: 18px;
+    }
+
+    .btn-register {
+        background: #e0b64b;
+        color: #071028;
+        font-weight: bold;
+        border-radius: 10px;
+        padding: 12px;
+        width: 100%;
+    }
+
+        .btn-register:hover {
+            background: #f6d66d;
+            color: black;
+        }
+</style>
+
+<h2 class="text-center mt-3 text-warning">Registration</h2>
+
+<div class="register-container">
+
+    <!-- Success / Error -->
+    @if (TempData["success"] != null)
+    {
+        <div class="alert alert-success">@TempData["success"]</div>
+    }
+    @if (TempData["error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["error"]</div>
+    }
+
+    @using (Html.BeginForm("Register", "Account", FormMethod.Post))
+    {
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+        <!-- Row 1: Full Name + Email -->
+        <div class="row row-gap">
+            <div class="col-md-6">
+                <label class="form-label">Full Name</label>
+                @Html.TextBoxFor(m => m.FullName, new { @class = "form-control", required = "required" })
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Email</label>
+                @Html.TextBoxFor(m => m.Email, new { @class = "form-control", type = "email", required = "required" })
+            </div>
+        </div>
+
+        <!-- Row 2: Gender + Phone -->
+        <div class="row row-gap">
+            <div class="col-md-6">
+                <label class="form-label">Gender</label>
+                @Html.DropDownListFor(m => m.Gender, new SelectList(new[] { "Male", "Female", "Other" }), "Select Gender", new { @class = "form-control" })
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Phone Number</label>
+                @Html.TextBoxFor(m => m.PhoneNo, new { @class = "form-control", required = "required" })
+            </div>
+        </div>
+
+        <!-- Row 3: Address (Full Row) -->
+        <div class="mb-3">
+            <label class="form-label">Address</label>
+            @Html.TextAreaFor(m => m.Address, new { @class = "form-control", rows = "2", required = "required" })
+        </div>
+
+        <!-- Row 4: ID Proof Type + ID Proof Number -->
+        <div class="row row-gap">
+            <div class="col-md-6">
+                <label class="form-label">ID Proof Type</label>
+                @Html.DropDownListFor(m => m.IDProofType,
+                    new SelectList(new[] { "Aadhar", "Driving Licence" }),
+                    "Select ID Proof",
+                    new { @class = "form-control" })
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">ID Proof Number</label>
+                @Html.TextBoxFor(m => m.IDProofNumber, new { @class = "form-control", required = "required" })
+            </div>
+        </div>
+
+        <!-- Row 5: Occupation + Role -->
+        <div class="row row-gap">
+            <div class="col-md-6">
+                <label class="form-label">Occupation</label>
+                @Html.DropDownListFor(m => m.Occupation,
+                    new SelectList(new[] { "Student", "Working Professional" }),
+                    "Select Occupation",
+                    new { @class = "form-control" })
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Role</label>
+                @Html.DropDownListFor(m => m.Role,
+                    new SelectList(new[] { "User", "Admin" }),
+                    "Select Role",
+                    new { @class = "form-control" })
+            </div>
+        </div>
+
+        <!-- Row 6: Password + Confirm Password -->
+        <div class="row row-gap">
+            <div class="col-md-6">
+                <label class="form-label">Password</label>
+                @Html.PasswordFor(m => m.Password, new { @class = "form-control", required = "required" })
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Confirm Password</label>
+                @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control", required = "required" })
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-register mt-3">Register</button>
+    }
+</div>
+
