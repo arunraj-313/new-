@@ -74,3 +74,58 @@
     @Scripts.Render("~/bundles/bootstrap")
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+<div class="row">
+
+    <!-- Full Name -->
+    <div class="col-md-6">
+        @Html.LabelFor(m => m.FullName)
+        @Html.TextBoxFor(m => m.FullName, new { @class = "form-control" })
+    </div>
+
+    <!-- Email -->
+    <div class="col-md-6">
+        @Html.LabelFor(m => m.Email)
+        @Html.TextBoxFor(m => m.Email, new { @class = "form-control" })
+    </div>
+
+    <!-- Phone Number -->
+    <div class="col-md-6" style="margin-top:15px;">
+        @Html.LabelFor(m => m.PhoneNumber)
+        @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control" })
+    </div>
+
+    <!-- Address -->
+    <div class="col-md-6" style="margin-top:15px;">
+        @Html.LabelFor(m => m.Address)
+        @Html.TextBoxFor(m => m.Address, new { @class = "form-control" })
+    </div>
+
+    <!-- ID Proof Type -->
+    <div class="col-md-6" style="margin-top:15px;">
+        @Html.LabelFor(m => m.IDProofType)
+        @Html.TextBoxFor(m => m.IDProofType, new { @class = "form-control" })
+    </div>
+
+    <!-- ID Proof Number -->
+    <div class="col-md-6" style="margin-top:15px;">
+        @Html.LabelFor(m => m.IDProofNumber)
+        @Html.TextBoxFor(m => m.IDProofNumber, new { @class = "form-control" })
+    </div>
+
+    <!-- Occupation (full row) -->
+    <div class="col-md-12" style="margin-top:15px;">
+        @Html.LabelFor(m => m.Occupation)
+        @Html.TextBoxFor(m => m.Occupation, new { @class = "form-control" })
+    </div>
+
+</div>
