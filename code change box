@@ -1,150 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    @Styles.Render("~/Content/css")
-    @Scripts.Render("~/bundles/modernizr")
-
-<style>
-    :root {
-        --royal-1: #071028;
-        --royal-2: #0b1c3f;
-        --gold-1: #cfa23a;
-        --gold-2: #e0b64b;
-        --text: #ffffff;
-        --muted: #b6c1de;
-    }
-
-    .navbar-custom { background: #071028; color: white; }
-
-    .login-btn, .logout-btn {
-        padding: 8px 16px;
-        border-radius: 10px;
-        border: none;
-        background: #f6d66d;
-        color: #071028;
-        font-weight: bold;
-        cursor: pointer;
-    }
-
-    footer {
-        display: none;
-    }
-</style>
-
-</head>
-<body>
-    <div class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container">
-            <div class="navbar-header">
-                @Html.ActionLink("Stay-Ease", "Index", "Home", null, new { @class = "navbar-brand" })
-            </div>
-
-            <div class="navbar-collapse collapse">
-
-                <ul class="nav navbar-nav">
-                    <li>@Html.ActionLink("Home", "Index", "Home")</li>
-                    <li>@Html.ActionLink("About", "About", "Home")</li>
-                    <li>@Html.ActionLink("Contact", "Contact", "Home")</li>
-                </ul>
-
-                <div class="header-buttons navbar-right">
-                    @if (Session["FullName"] != null)
-                    {
-                        <span class="welcome-text">Welcome, @Session["FullName"]!</span>
-                        <button class="logout-btn" onclick="window.location.href='@Url.Action("Logout","Account")'">Logout</button>
-                    }
-                    else if (ViewBag.HideLogin != true)
-                    {
-                        <button class="login-btn" onclick="window.location.href='@Url.Action("Login","Account")'">Login</button>
-                    }
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <div class="container body-content">
-        @RenderBody()
-    </div>
-
-    @Scripts.Render("~/bundles/jquery")
-    @Scripts.Render("~/bundles/bootstrap")
-</body>
-</html>
-
-
-
-
-
-
-
-
-
-
-<div class="row">
-
-    <!-- Full Name -->
-    <div class="col-md-6">
-        @Html.LabelFor(m => m.FullName)
-        @Html.TextBoxFor(m => m.FullName, new { @class = "form-control" })
-    </div>
-
-    <!-- Email -->
-    <div class="col-md-6">
-        @Html.LabelFor(m => m.Email)
-        @Html.TextBoxFor(m => m.Email, new { @class = "form-control" })
-    </div>
-
-    <!-- Phone Number -->
-    <div class="col-md-6" style="margin-top:15px;">
-        @Html.LabelFor(m => m.PhoneNumber)
-        @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control" })
-    </div>
-
-    <!-- Address -->
-    <div class="col-md-6" style="margin-top:15px;">
-        @Html.LabelFor(m => m.Address)
-        @Html.TextBoxFor(m => m.Address, new { @class = "form-control" })
-    </div>
-
-    <!-- ID Proof Type -->
-    <div class="col-md-6" style="margin-top:15px;">
-        @Html.LabelFor(m => m.IDProofType)
-        @Html.TextBoxFor(m => m.IDProofType, new { @class = "form-control" })
-    </div>
-
-    <!-- ID Proof Number -->
-    <div class="col-md-6" style="margin-top:15px;">
-        @Html.LabelFor(m => m.IDProofNumber)
-        @Html.TextBoxFor(m => m.IDProofNumber, new { @class = "form-control" })
-    </div>
-
-    <!-- Occupation (full row) -->
-    <div class="col-md-12" style="margin-top:15px;">
-        @Html.LabelFor(m => m.Occupation)
-        @Html.TextBoxFor(m => m.Occupation, new { @class = "form-control" })
-    </div>
-
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 @model StayEasePG.Models.UserModel
 
 @{
@@ -179,12 +32,12 @@
         border-radius: 8px;
     }
 
-    .form-control:focus {
-        background: white;
-        color: black;
-        border: 2px solid #cfa23a;
-        box-shadow: none;
-    }
+        .form-control:focus {
+            background: white;
+            color: black;
+            border: 2px solid #cfa23a;
+            box-shadow: none;
+        }
 
     .btn-register {
         background: #f4c542;
@@ -197,10 +50,10 @@
         margin-top: 10px;
     }
 
-    .btn-register:hover {
-        background: white;
-        color: black;
-    }
+        .btn-register:hover {
+            background: white;
+            color: black;
+        }
 
     .login-link {
         margin-top: 15px;
@@ -211,10 +64,23 @@
         text-decoration: none;
     }
 
-    .login-link:hover {
-        color: white;
-        text-decoration: underline;
+        .login-link:hover {
+            color: white;
+            text-decoration: underline;
+        }
+
+
+    textarea.form-control {    
+        width: 100%; /* Full width */
     }
+
+
+
+    textarea[name="Address"] {
+        textarea width: 500px;
+
+
+
 </style>
 
 <div class="container">
@@ -259,12 +125,14 @@
 
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Phone Number</label>
-                            @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control", required = "required" })
+                            @Html.TextBoxFor(m => m.PhoneNo, new { @class = "form-control", required = "required" })
                         </div>
 
                         <div class="col-md-12 mb-3">
                             <label class="form-label">Address</label>
-                            @Html.TextAreaFor(m => m.Address, new { @class = "form-control", rows = "2", required = "required" })
+
+                            @Html.TextAreaFor(m => m.Address, new { @class = "form-control", rows = "2", style = "width:100%;", required = "required" })
+
                         </div>
 
                         <div class="col-md-6 mb-3">
