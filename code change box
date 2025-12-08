@@ -298,3 +298,192 @@
     @RenderSection("scripts", required: false)
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@model StayEasePG.Models.UserModel
+
+@{
+    ViewBag.Title = "Register";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    body {
+        background: #0b1c3f;
+        color: white;
+    }
+
+    .reg-card {
+        background: #13254f;
+        padding: 25px;
+        border-radius: 12px;
+        border: 1px solid #cfa23a55;
+        box-shadow: 0 0 12px #00000070;
+        margin-top: 30px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #e0e0e0;
+    }
+
+    .form-control {
+        background: #0b1c3f;
+        border: 1px solid #cfa23a55;
+        color: white;
+        border-radius: 8px;
+    }
+
+    .form-control:focus {
+        background: white;
+        color: black;
+        border: 2px solid #cfa23a;
+        box-shadow: none;
+    }
+
+    .btn-register {
+        background: #f4c542;
+        color: black;
+        font-weight: 700;
+        padding: 10px;
+        border-radius: 8px;
+        width: 100%;
+        border: none;
+        margin-top: 10px;
+    }
+
+    .btn-register:hover {
+        background: white;
+        color: black;
+    }
+
+    .login-link {
+        margin-top: 15px;
+        display: block;
+        text-align: center;
+        color: #f4c542;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .login-link:hover {
+        color: white;
+        text-decoration: underline;
+    }
+</style>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="reg-card">
+
+                <h3 class="text-center mb-3" style="color:#f4c542; font-weight:700;">Register</h3>
+
+                <!-- Success/Error -->
+                @if (TempData["success"] != null)
+                {
+                    <div class="alert alert-success">@TempData["success"]</div>
+                }
+                @if (TempData["error"] != null)
+                {
+                    <div class="alert alert-danger">@TempData["error"]</div>
+                }
+
+                @using (Html.BeginForm("Register", "Account", FormMethod.Post))
+                {
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Full Name</label>
+                            @Html.TextBoxFor(m => m.FullName, new { @class = "form-control", required = "required" })
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Email</label>
+                            @Html.TextBoxFor(m => m.Email, new { @class = "form-control", type = "email", required = "required" })
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Gender</label>
+                            @Html.DropDownListFor(m => m.Gender,
+                                new SelectList(new[] { "Male", "Female", "Other" }),
+                                "Select Gender",
+                                new { @class = "form-control", required = "required" })
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Phone Number</label>
+                            @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control", required = "required" })
+                        </div>
+
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Address</label>
+                            @Html.TextAreaFor(m => m.Address, new { @class = "form-control", rows = "2", required = "required" })
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">ID Proof Type</label>
+                            @Html.DropDownListFor(m => m.IDProofType,
+                                new SelectList(new[] { "Aadhar", "Driving Licence" }),
+                                "Select ID Proof",
+                                new { @class = "form-control", required = "required" })
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">ID Proof Number</label>
+                            @Html.TextBoxFor(m => m.IDProofNumber, new { @class = "form-control", required = "required" })
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Occupation</label>
+                            @Html.DropDownListFor(m => m.Occupation,
+                                new SelectList(new[] { "Student", "Working Professional" }),
+                                "Select Occupation",
+                                new { @class = "form-control", required = "required" })
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Role</label>
+                            @Html.DropDownListFor(m => m.Role,
+                                new SelectList(new[] { "User", "Admin" }),
+                                "Select Role",
+                                new { @class = "form-control", required = "required" })
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Password</label>
+                            @Html.PasswordFor(m => m.Password, new { @class = "form-control", required = "required" })
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Confirm Password</label>
+                            @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control", required = "required" })
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-register">Register</button>
+
+                    <a href="/Account/Login" class="login-link">Already have an account? Login</a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
