@@ -1090,3 +1090,99 @@ Version Information: Microsoft .NET Framework Version:4.0.30319; ASP.NET Version
 </html>
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@{
+    ViewBag.Title = "Register";
+    ViewBag.HideLogin = true;
+}
+
+<h2 class="text-center">Create Your Account</h2>
+
+@if (TempData["error"] != null)
+{
+    <div class="alert alert-danger text-center">@TempData["error"]</div>
+}
+
+@using (Html.BeginForm("Register", "Account", FormMethod.Post))
+{
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+    <div class="row" style="margin-top:20px;">
+
+        <div class="col-md-6">
+            @Html.Label("Full Name")
+            @Html.TextBoxFor(m => m.FullName, new { @class = "form-control" })
+        </div>
+
+        <div class="col-md-6">
+            @Html.Label("Email")
+            @Html.TextBoxFor(m => m.Email, new { @class = "form-control" })
+        </div>
+
+        <div class="col-md-6" style="margin-top:15px;">
+            @Html.Label("Gender")
+            @Html.DropDownList("Gender", new List<SelectListItem>
+            {
+                new SelectListItem{Text="Male", Value="Male"},
+                new SelectListItem{Text="Female", Value="Female"},
+                new SelectListItem{Text="Other", Value="Other"}
+            }, "Select Gender", new { @class="form-control"})
+        </div>
+
+        <div class="col-md-6" style="margin-top:15px;">
+            @Html.Label("Phone Number")
+            @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control" })
+        </div>
+
+        <div class="col-md-12" style="margin-top:15px;">
+            @Html.Label("Address")
+            @Html.TextAreaFor(m => m.Address, new { @class = "form-control", rows = 2 })
+        </div>
+
+        <div class="col-md-6" style="margin-top:15px;">
+            @Html.Label("ID Proof Type")
+            @Html.TextBoxFor(m => m.IDProofType, new { @class = "form-control" })
+        </div>
+
+        <div class="col-md-6" style="margin-top:15px;">
+            @Html.Label("ID Proof Number")
+            @Html.TextBoxFor(m => m.IDProofNumber, new { @class = "form-control" })
+        </div>
+
+        <div class="col-md-12" style="margin-top:15px;">
+            @Html.Label("Occupation")
+            @Html.TextBoxFor(m => m.Occupation, new { @class = "form-control" })
+        </div>
+
+        <div class="col-md-12 text-center" style="margin-top:25px;">
+            <button type="submit" class="btn btn-warning" style="padding:10px 30px;font-size:18px;">
+                Register
+            </button>
+        </div>
+
+    </div>
+}
+
