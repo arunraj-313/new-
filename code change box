@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+
+<style>
+    :root {
+        --royal-1: #071028;
+        --royal-2: #0b1c3f;
+        --gold-1: #cfa23a;
+        --gold-2: #e0b64b;
+        --text: #ffffff;
+        --muted: #b6c1de;
+    }
+
+    .navbar-custom { background: #071028; color: white; }
+
+    .login-btn, .logout-btn {
+        padding: 8px 16px;
+        border-radius: 10px;
+        border: none;
+        background: #f6d66d;
+        color: #071028;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    footer {
+        display: none;
+    }
+</style>
+
+</head>
+<body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                @Html.ActionLink("Stay-Ease", "Index", "Home", null, new { @class = "navbar-brand" })
+            </div>
+
+            <div class="navbar-collapse collapse">
+
+                <ul class="nav navbar-nav">
+                    <li>@Html.ActionLink("Home", "Index", "Home")</li>
+                    <li>@Html.ActionLink("About", "About", "Home")</li>
+                    <li>@Html.ActionLink("Contact", "Contact", "Home")</li>
+                </ul>
+
+                <div class="header-buttons navbar-right">
+                    @if (Session["FullName"] != null)
+                    {
+                        <span class="welcome-text">Welcome, @Session["FullName"]!</span>
+                        <button class="logout-btn" onclick="window.location.href='@Url.Action("Logout","Account")'">Logout</button>
+                    }
+                    else if (ViewBag.HideLogin != true)
+                    {
+                        <button class="login-btn" onclick="window.location.href='@Url.Action("Login","Account")'">Login</button>
+                    }
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="container body-content">
+        @RenderBody()
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+</body>
+</html>
